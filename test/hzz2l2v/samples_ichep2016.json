@@ -51,6 +51,17 @@
       ]
     },
     {
+      "tag":"ggZZ",
+      "keys":["2l2v_sigOnly","2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_datadrivenplot", "2l2v_photoncontrol", "2l2v_datadriven_SM",   "2l2v_mcbased_SM"],
+      "isdata":false,
+      "color":592,
+      "mctruthmode":1113,
+      "data":[
+        { "dtag":"MC13TeV_ggZZ2mu2nu_2016"                      ,  "xsec":0.01898          , "br":[ 1.0 ]           , "dset":["/GluGluToContinToZZTo2mu2nu_13TeV_MCFM701_pythia8/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM"]},
+        { "dtag":"MC13TeV_ggZZ2e2nu_2016"                       ,  "xsec":0.01898          , "br":[ 1.0 ]           , "dset":["/GluGluToContinToZZTo2e2nu_13TeV_MCFM701_pythia8/RunIISpring16MiniAODv2-PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/MINIAODSIM"]}
+      ]
+    },
+    {
       "tag":"WW",
 	"keys":["2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_photoncontrol", "2l2v_photonsOnly", "2l2v_datadriven_SM",   "2l2v_mcbased_SM"],
       "isdata":false,
