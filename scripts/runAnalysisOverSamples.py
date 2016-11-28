@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,sys,time
+import os,re,sys,time
 import json
 import optparse
 import commands
@@ -263,6 +263,12 @@ for procBlock in procList :
         isdatadriven=getByLabelFromKeyword(proc,opt.onlykeyword,'isdatadriven',False)       
         mctruthmode=getByLabelFromKeyword(proc,opt.onlykeyword,'mctruthmode',0)
         procSuffix=getByLabelFromKeyword(proc,opt.onlykeyword,'suffix' ,"")
+        massPoint = getByLabel(proc,'tag',"noName")
+	if not "ggH" in massPoint:
+		massPoint="-1"
+	else:
+		massPoint = re.split("\(",re.split("_",massPoint)[0])[1][:-1]
+	print "massPoint",massPoint
         data = proc['data']
 
         for procData in data : 
@@ -311,6 +317,7 @@ for procBlock in procList :
             	   sedcmd += 's%@xsec%'+str(xsec)+'%;'
                    sedcmd += 's%@cprime%'+str(getByLabel(procData,'cprime',-1))+'%;'
                    sedcmd += 's%@brnew%' +str(getByLabel(procData,'brnew' ,-1))+'%;'
+                   sedcmd += 's%@resonance%' +str(massPoint)+'%;'
                    sedcmd += 's%@suffix%' +suffix+'%;'
                    sedcmd += 's%@lumiMask%"' + os.path.expandvars(getByLabel(procData,'lumiMask',''))+'"%;'
               	   if(opt.params.find('@useMVA')<0) :          opt.params = '@useMVA=False ' + opt.params
@@ -330,6 +337,7 @@ for procBlock in procList :
                         sedcmd += 's%' + varopt[0] + '%' + varopt[1] + '%;'
             	   sedcmd += '\''
                    cfgfile=prodfilepath + '_cfg.py'
+		   print sedcmd
                    os.system('cat ' + opt.cfg_file + ' | ' + sedcmd + ' > ' + cfgfile)
 
                    #run the job

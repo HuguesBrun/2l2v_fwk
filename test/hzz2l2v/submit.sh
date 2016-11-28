@@ -112,7 +112,7 @@ if [[ $step > 0.999 &&  $step < 2 ]]; then
         echo "JOB SUBMISSION"
         runAnalysisOverSamples.py -e runHZZ2l2vAnalysis -j $JSON -o $RESULTSDIR  -c $MAINDIR/../runAnalysis_cfg.py.templ -p "@data_pileup="$pileup" @jacknife=0 @saveSummaryTree=True @runSystematics=False @useMVA=True @jacks=0" -s $queue --report True --key 2l2v_sigOnly $arguments
    fi
-   #if [[ $HOSTNAME =~ "iihe" ]]; then yes | big-submission $RESULTSDIR/FARM/inputs/big.cmd; fi
+   if [[ $HOSTNAME =~ "iihe" ]]; then yes | big-submission $RESULTSDIR/FARM/inputs/big.cmd; fi
 
  
 fi
@@ -222,6 +222,9 @@ if [[ $step > 2.999 && $step < 4 ]]; then
 
     if [[ $step == 3 || $step == 3.21 ]]; then  # make plots and combine root files for photon + jet study    
         runPlotter --iEcm 13 --iLumi $INTLUMI --inDir $RESULTSDIR/ --outDir $PLOTSDIR/datadriven/       --outFile ${PLOTTER}.root  --json $JSON --no2D --plotExt .png --plotExt .pdf  --key 2l2v_datadrivenplot --fileOption READ --showUnc 0.06 --rebin -1 --only "(all|ll|mumu|ee|emu)(|eq0jets|geq1jets|vbf)_(mtSyst|metSyst)" $arguments 
+    fi
+    if [[ $step == 3 || $step == 3.5 ]]; then  # make plots and combine root files for photon + jet study    
+        runPlotter --iEcm 13 --iLumi $INTLUMI --inDir $RESULTSDIR/ --outDir $PLOTSDIR/mcbased/ --outFile ${PLOTTER}.root  --json $JSON --no2D --plotExt .png --plotExt .pdf  --key 2l2v_sigOnly $arguments
     fi
 
 
