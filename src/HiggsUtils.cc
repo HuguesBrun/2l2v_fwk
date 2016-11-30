@@ -272,6 +272,7 @@ namespace higgs{
    float ComputeInterfWeight( Mela& mela, bool isVBF, TString MelaMode, double heavyMass, double heavyWidth, SimpleParticleCollection_t& daughters, SimpleParticleCollection_t& associated, SimpleParticleCollection_t& mothers){
 
 	float Interf_weight=0;
+	cout << "Heavy mass beg=" << heavyMass << endl;
 
 	if(isVBF){
 		mela.setInputEvent(&daughters, &associated, &mothers, true);
@@ -343,7 +344,7 @@ namespace higgs{
                         mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::JJVBF);
                         mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
                         mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
-                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
 			mela.computeP( All_wg, false);
 
 			Interf_weight = All_wg - Sigh1_wg - Sigh2_wg - Bckg_wg;
@@ -373,7 +374,7 @@ namespace higgs{
                         mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::JJVBF);
                         mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
                         mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
-                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
                         mela.computeP( All_wg, false);
 
 			//Bckg+Light Higgs
@@ -487,7 +488,7 @@ namespace higgs{
                         mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
                         mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
                         mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
-                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
                         mela.computeP( All_wg, false);
 
                         Interf_weight = All_wg - Sigh1_wg - Sigh2_wg - Bckg_wg;
@@ -517,7 +518,7 @@ namespace higgs{
                         mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
                         mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
                         mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
-                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                        mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
                         mela.computeP( All_wg, false);
 
 			//Bckg+Light Higgs
@@ -620,7 +621,8 @@ namespace higgs{
 		mela.setInputEvent(&daughters, 0, &mothers, true);
 		mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
 	} 
-		
+	
+	cout << "hello here the SM" << heavyMass << " " << heavyWidth << endl;	
 	mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses	
         mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
         mela.computeP( weightSM, false);
@@ -651,7 +653,7 @@ namespace higgs{
                         	mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::JJVBF);
                         	mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
                         	mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
-                        	mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                        	mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
 			}
         	}else{
                 	mela.setInputEvent(&daughters, 0, &mothers, true);	
@@ -664,20 +666,22 @@ namespace higgs{
 			} else if(MelaMode.Contains("Sigh2")){ 
                         	mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
                         	mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
-                        	mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
+				cout << "hello mela.setMelaHiggsMassWidth" << heavyMass << " " << heavyWidth << endl;
+                        	mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
 			} else if(MelaMode.Contains("Sigh1")){ 
                         	mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
                         	mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
-                        	mela.setMelaHiggsMassWidth( 125, 4.07e-3, 1);
+                        	mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
 			} else if(MelaMode.Contains("All")){
                         	mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
                         	mela.setMelaHiggsMassWidth( -1, 0, 0); //Clean all the masses
                         	mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
-                        	mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                        	mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 1);
                 	}
         	}
 		
 		mela.computeP( weightMELA, false);
+		cout << " I am the mela weight ! " << weightMELA << endl;
 
 	} else if( MelaMode.Contains("Interf") ){
 		weightMELA = ComputeInterfWeight( mela, isVBF, MelaMode, heavyMass, heavyWidth, daughters, associated, mothers);
