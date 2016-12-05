@@ -665,8 +665,8 @@
       ]
     },
     {
-      "tag":"ggH(900)",
-      "keys":["2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_datadrivenplot", "2l2v_datadriven_SM", "2l2v_mcbased_SM"],
+      "tag":"ggH(900)_ContinuumOnly",
+      "keys":["2l2v_sigOnly", "2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_datadrivenplot", "2l2v_datadriven_SM", "2l2v_mcbased_SM"],
       "isinvisible":true,
       "isdata":false,
       "issignal":true,
@@ -675,7 +675,49 @@
       "lwidth":2,
       "fill":0,
       "data":[
-        { "dtag":"MC13TeV_GGtoH900toZZto2L2Nu_powheg_2016"     ,  "xsec":1.0      , "br":[0.029264]    , "dset":["/GluGluHToZZTo2L2Nu_M900_13TeV_powheg2_JHUgenV698_pythia8/RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/MINIAODSIM"] }
+        { "dtag":"MC13TeV_GGtoH900toZZto2L2Nu_powheg_2016_ContinuumOnly_MELA"     ,  "xsec":1.0      , "br":[0.029264]    , "dset":["/GluGluHToZZTo2L2Nu_M900_13TeV_powheg2_JHUgenV698_pythia8/RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/MINIAODSIM"] }
+      ]
+    },
+    {
+      "tag":"ggH(900)_SOnly",
+      "keys":["2l2v_sigOnly", "2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_datadrivenplot", "2l2v_datadriven_SM", "2l2v_mcbased_SM"],
+      "isinvisible":true,
+      "isdata":false,
+      "issignal":true,
+      "spimpose":true,
+      "lcolor":619,
+      "lwidth":2,
+      "fill":0,
+      "data":[
+        { "dtag":"MC13TeV_GGtoH900toZZto2L2Nu_powheg_2016_SOnly_MELA"     ,  "xsec":1.0      , "br":[0.029264]    , "dset":["/GluGluHToZZTo2L2Nu_M900_13TeV_powheg2_JHUgenV698_pythia8/RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/MINIAODSIM"] }
+      ]
+    },
+    {
+      "tag":"ggH(900)_BOnly",
+      "keys":["2l2v_sigOnly", "2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_datadrivenplot", "2l2v_datadriven_SM", "2l2v_mcbased_SM"],
+      "isinvisible":true,
+      "isdata":false,
+      "issignal":true,
+      "spimpose":true,
+      "lcolor":619,
+      "lwidth":2,
+      "fill":0,
+      "data":[
+        { "dtag":"MC13TeV_GGtoH900toZZto2L2Nu_powheg_2016_BOnly_MELA"     ,  "xsec":1.0      , "br":[0.029264]    , "dset":["/GluGluHToZZTo2L2Nu_M900_13TeV_powheg2_JHUgenV698_pythia8/RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/MINIAODSIM"] }
+      ]
+    },
+    {
+      "tag":"ggH(900)_SandBandInterf",
+      "keys":["2l2v_sigOnly", "2l2v_2016", "2l2v_mcbased", "2l2v_datadriven", "2l2v_datadrivenplot", "2l2v_datadriven_SM", "2l2v_mcbased_SM"],
+      "isinvisible":true,
+      "isdata":false,
+      "issignal":true,
+      "spimpose":true,
+      "lcolor":619,
+      "lwidth":2,
+      "fill":0,
+      "data":[
+        { "dtag":"MC13TeV_GGtoH900toZZto2L2Nu_powheg_2016_SandBandInterf_MELA"     ,  "xsec":1.0      , "br":[0.029264]    , "dset":["/GluGluHToZZTo2L2Nu_M900_13TeV_powheg2_JHUgenV698_pythia8/RunIISpring16MiniAODv2-PUSpring16RAWAODSIM_reHLT_80X_mcRun2_asymptotic_v14-v1/MINIAODSIM"] }
       ]
     },
     {
