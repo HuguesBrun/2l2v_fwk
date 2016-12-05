@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 
   //tree info
   TString dirname = runProcess.getParameter<std::string>("dirName");
-
+  //cout << "hello mela mode " << MelaMode << " mass point= " << resonance << endl;
 
   //systematics
   bool runSystematics                        = runProcess.getParameter<bool>("runSystematics");
@@ -841,6 +841,7 @@ int main(int argc, char* argv[])
                         }
 		     }else if(isMELA){ 
                         lMelaShapeWeights[nri][MelaMode] = higgs::utils::weightNarrowResonnance_MELA( mela, isMC_VBF, MelaMode, NRparams[nri].first, resonance, ev);
+			//cout << "nri=" << nri << " MelaMode=" << MelaMode << " lMelaShapeWeights=" << lMelaShapeWeights[nri][MelaMode] << endl;
 		     }
 
 		     double shape_SF =0; double shapescale_SF = 0;
