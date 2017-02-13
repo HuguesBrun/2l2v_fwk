@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
          //Select the Tag muon 
          passKinMu = (ptf > 20);
          passIdMu  = patUtils::passId(selLeptons[first].mu, vtx[0], patUtils::llvvMuonId::Tight, patUtils::CutVersion::ICHEP16Cut);      
-         passIsoMu = patUtils::passIso(selLeptons[first].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut); 
+         passIsoMu = 0;//patUtils::passIso(selLeptons[first].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut, PFparticles, muons, vtx[0]); 
          if(passIdMu && passKinMu && passIsoMu) Tag = true;
          if(Tag){
            mon.fillHisto("pT",  "Mu_Tag",  ptf, weight);
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
 
          //Select the Probe Muon
          ProbeMuKin = (pts > 20);
-         ProbeMuIso = patUtils::passIso(selLeptons[second].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
+         ProbeMuIso =0;//= patUtils::passIso(selLeptons[second].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
          if( ProbeMuKin ) ProbeMu = true;
          if(ProbeMu){
            mon.fillHisto("pT",  "Mu_NoCutProbe",  pts, weight);
@@ -377,7 +377,7 @@ int main(int argc, char* argv[])
            passIdTh = patUtils::passId(selLeptons[second].mu, vtx[0], patUtils::llvvMuonId::Tight, patUtils::CutVersion::ICHEP16Cut);
            passIdLo = patUtils::passId(selLeptons[second].mu, vtx[0], patUtils::llvvMuonId::Loose, patUtils::CutVersion::ICHEP16Cut);
            passIdMd = patUtils::passId(selLeptons[second].mu, vtx[0], patUtils::llvvMuonId::Soft, patUtils::CutVersion::ICHEP16Cut);
-           passIsoProbeMu = patUtils::passIso(selLeptons[second].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
+           passIsoProbeMu = 0;// patUtils::passIso(selLeptons[second].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
            if(passIdTh && passIsoProbeMu) PassProbeTh = true;
            if(passIdLo && passIsoProbeMu) PassProbeLo = true;
            if(passIdMd && passIsoProbeMu) PassProbeMd = true;

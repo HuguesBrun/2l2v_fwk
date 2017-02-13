@@ -502,7 +502,7 @@ int main(int argc, char* argv[])
 	//Select the Tag muon 
          passKinMu = (ptf > 20 && abs(etaf) < 2.1);
          passIdMu  = patUtils::passId(selLeptons[first].mu, vtx[0], patUtils::llvvMuonId::StdTight, patUtils::CutVersion::ICHEP16Cut);      
-         passIsoMu = patUtils::passIso(selLeptons[first].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut); 
+         passIsoMu = 0;//patUtils::passIso(selLeptons[first].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut); 
          if(passIdMu && passKinMu && passIsoMu && passTagdRMuonCut) Tag = true;
          if(!Tag) continue;
            mon.fillHisto("pT",  "Mu_Tag",  ptf, weight);
@@ -530,7 +530,7 @@ int main(int argc, char* argv[])
            passIdTh = patUtils::passId(selLeptons[second].mu, vtx[0], patUtils::llvvMuonId::StdTight, patUtils::CutVersion::ICHEP16Cut);
            passIdMd = patUtils::passId(selLeptons[second].mu, vtx[0], patUtils::llvvMuonId::StdMedium, patUtils::CutVersion::ICHEP16Cut);
            passIdLo = patUtils::passId(selLeptons[second].mu, vtx[0], patUtils::llvvMuonId::StdLoose, patUtils::CutVersion::ICHEP16Cut);
-           passIsoProbeMu = patUtils::passIso(selLeptons[second].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
+           passIsoProbeMu = 0;//patUtils::passIso(selLeptons[second].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
            if(passIdTh && passIsoProbeMu) PassProbeTh = true;
            if(passIdLo && passIsoProbeMu) PassProbeLo = true;
            if(passIdMd && passIsoProbeMu) PassProbeMd = true;
