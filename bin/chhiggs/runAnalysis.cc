@@ -1164,8 +1164,8 @@ int main (int argc, char *argv[])
           //passVetoId = lid == 11 ? patUtils::passId(electronVidVetoId, myEvent, lepton.el) : patUtils::passId(lepton.mu, goodPV, patUtils::llvvMuonId::StdLoose);
 
           //isolation
-          passIso     = lid == 11 ? patUtils::passIso(leptons[ilep].el, patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0.) : patUtils::passIso(lepton.mu, patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
-          passVetoIso = lid == 11 ? patUtils::passIso(leptons[ilep].el, patUtils::llvvElecIso::Loose, patUtils::CutVersion::ICHEP16Cut, 0.) : patUtils::passIso(lepton.mu, patUtils::llvvMuonIso::Loose, patUtils::CutVersion::ICHEP16Cut);
+          passIso     = 0;//lid == 11 ? patUtils::passIso(leptons[ilep].el, patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0.) : patUtils::passIso(lepton.mu, patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
+          passVetoIso = 0;//lid == 11 ? patUtils::passIso(leptons[ilep].el, patUtils::llvvElecIso::Loose, patUtils::CutVersion::ICHEP16Cut, 0.) : patUtils::passIso(lepton.mu, patUtils::llvvMuonIso::Loose, patUtils::CutVersion::ICHEP16Cut);
 
           if     (passKin     && passId     && passIso)     selLeptons.push_back(lepton);
           else if(passVetoKin && passVetoId && passVetoIso) lid==11 ? nVetoE++ : nVetoMu++;
