@@ -1036,7 +1036,7 @@ int main(int argc, char* argv[])
           muonsHandle.getByLabel(ev, "slimmedMuons");
           if(muonsHandle.isValid()){ muonsRAW = *muonsHandle;}
 
-          pat::MuonCollection muons = patUtils::cleanMuonsFromDuplicates(muonsRAW); //clean the muon collection from duplicate :)
+          pat::MuonCollection muons = muonsRAW;//patUtils::cleanMuonsFromDuplicates(muonsRAW); //clean the muon collection from duplicate :)
 
           pat::ElectronCollection electrons;
           fwlite::Handle< pat::ElectronCollection > electronsHandle;
@@ -1184,13 +1184,13 @@ int main(int argc, char* argv[])
               std::vector<pat::PackedCandidate> PFpartVect = *PFparticles;
              //Cut based identification
              if(is2016MC || is2016data){
-                 passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::TightAndTlkHighPt, patUtils::CutVersion::ICHEP16Cut);
+                 passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::tkHighPT, patUtils::CutVersion::ICHEP16Cut);
                  passLooseLepton &= lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Loose, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Loose, patUtils::CutVersion::ICHEP16Cut);
                  passSoftMuon &= lid==11? false : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Soft, patUtils::CutVersion::ICHEP16Cut);
 
                  //isolation
                  //passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0) : patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
-                 passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0) :   patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::H4lWP, patUtils::CutVersion::Moriond17Cut, PFpartVect, muons, vertex);
+                 passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0) :   patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::TightBoosted, patUtils::CutVersion::Moriond17Cut, PFpartVect, muons, vertex);
                  passLooseLepton &= lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Loose, patUtils::CutVersion::ICHEP16Cut, 0) : patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::Loose, patUtils::CutVersion::ICHEP16Cut, PFpartVect, muons, vertex);
 	     } else {
                  passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::Spring15Cut25ns) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Tight, patUtils::CutVersion::Spring15Cut25ns);

@@ -741,6 +741,61 @@ float computePFphotonIsolation(std::vector<pat::PackedCandidate> thePFparticles,
     float  relIso03  = (chIso03 + TMath::Max(0.,nhIso03+gIso03H4l-0.5*puchIso03)) / mu.pt();
     float  trkrelIso = mu.isolationR03().sumPt/mu.pt(); // no PU correction
 
+    float chHadPtToRemove=0;
+    float ntHadPtToRemove=0;
+    float pfPhotonToRemove=0;
+    ///checkMuonInCone
+    for (unsigned int j = 0; j < muons.size(); ++j) {
+        pat::Muon &otherMu = muons.at(j);
+        if (deltaR2(mu, otherMu)==0) continue;
+        if (!(patUtils::passId(otherMu, vertex, patUtils::llvvMuonId::tkHighPT, patUtils::CutVersion::ICHEP16Cut))) continue;
+        //if (otherMu.isPFMuon()) continue;
+        if (deltaR2(mu,otherMu) < 0.16){
+          if (patUtils::passId(mu, vertex, patUtils::llvvMuonId::tkHighPT, patUtils::CutVersion::ICHEP16Cut)){
+            /*std::cout << "hi, found a second muon in the cone" << std::endl;
+            std::cout << "first muon pt" << mu.pt() << " " <<  mu.eta()  << " "<< mu.isPFMuon() << endl;
+            std::cout << "second muon pt " << otherMu.pt() << " " << otherMu.eta() << " " << otherMu.isPFMuon() << endl;*/
+            /*float minDr=100;
+            float minDrMain=100;
+            //  float secMin=100;
+            int iteParticle = -1;
+            int iteParticleMain = -1;*/
+
+            for (unsigned int itePat=0 ; itePat<thePats.size(); itePat++){
+              pat::PackedCandidate aPat = thePats.at(itePat);
+              if (fabs(aPat.pdgId())==13) continue;
+              float deltaR = deltaR2(aPat,otherMu);
+              float deltaRMu = deltaR2(aPat,mu);
+              if (deltaR<0.16){
+                //cout << "pt=" << aPat.pt() << " pdgID=" << aPat.pdgId() << " deltaR=" << deltaR  << " deltaOther=" << deltaRMu<< endl;
+                if ((deltaR<0.0001)&&(!otherMu.isPFMuon())&&(fabs(aPat.pdgId())==211)){
+                  chHadPtToRemove = chHadPtToRemove+aPat.pt();
+                }
+                if ((deltaR<0.001)&&(fabs(aPat.pdgId())==130)){
+                  ntHadPtToRemove = ntHadPtToRemove+ aPat.pt();
+                }
+                if ((deltaR<0.01)&&(fabs(aPat.pdgId())==22)){
+                  pfPhotonToRemove =  pfPhotonToRemove+ aPat.pt();
+                }
+                //cout << "status iso before=" << pfIso04.sumPhotonEt-pfPhotonToRemove-aPat.pt() << " deltaR=" << deltaRMu << endl;
+                if ((deltaRMu<0.001)&&(fabs(aPat.pdgId())==22)&&((mu.pfIsolationR04().sumPhotonEt-pfPhotonToRemove-aPat.pt())>-10)){
+                  //cout << "hello inside " << endl;
+                  pfPhotonToRemove =  pfPhotonToRemove+ aPat.pt();
+                }
+                //cout << "status iso before=" << pfIso04.sumNeutralHadronEt-ntHadPtToRemove-aPat.pt() << " deltaR=" << deltaRMu << endl;
+                if ((deltaRMu<0.001)&&(fabs(aPat.pdgId())==130)&&((mu.pfIsolationR04().sumNeutralHadronEt-ntHadPtToRemove-aPat.pt())>-10)){
+                  //cout << "hello inside " << endl;
+                  ntHadPtToRemove = ntHadPtToRemove+ aPat.pt();
+                }
+              }
+
+            }
+
+          }
+        }
+    }
+    float relIsoSafeCloseBy = (mu.pfIsolationR04().sumChargedHadronPt  - chHadPtToRemove +
+              std::max(0.,mu.pfIsolationR04().sumPhotonEt+mu.pfIsolationR04().sumNeutralHadronEt - pfPhotonToRemove - ntHadPtToRemove - 0.5*mu.pfIsolationR04().sumPUPt)) / mu.pt();
     switch(cutVersion){
        case CutVersion::Spring15Cut25ns :
            switch(IsoLevel){
@@ -786,6 +841,9 @@ float computePFphotonIsolation(std::vector<pat::PackedCandidate> thePFparticles,
                 break;
               case llvvMuonIso::H4lWP :
                 if( relIso03 < 0.35 ) return true;
+                break;
+              case llvvMuonIso::TightBoosted:
+                if (relIsoSafeCloseBy < 0.15) return true;
                 break;
               default:
                 printf("FIXME MuonIso llvvMuonIso::%i is unkown\n", IsoLevel);
