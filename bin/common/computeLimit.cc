@@ -1928,6 +1928,24 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         if(it->second.shortName.find("wz")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["QCDscale_WZ"]    = integral*0.051;}
         if(it->second.shortName.find("wz")!=string::npos && chbin.Contains("vbf" )){shapeInfo.uncScale["QCDscale_WZ"]    = integral*0.40;}
 
+				//InstrMET normalization systematics
+				TString InstrMET_allExceptGammaStats_Url(string(std::getenv("CMSSW_BASE"))+"/src/UserCode/llvv_fwk/data/InstrMET_systematics/InstrMET_systematics_ALL_EXCEPT_GAMMASTATS.root");
+        TFile* f_InstrMET_allExceptGammaStats = TFile::Open(InstrMET_allExceptGammaStats_Url);
+        if(!f_InstrMET_allExceptGammaStats ){
+          std::cout<< "Missing InstrMET syst files! No syst for InstrMET!'" << std::endl;
+          continue;
+        }
+        TH1* h_InstrMET_Up_allExceptGammaStats = (TH1*)utils::root::GetObjectFromPath(f_InstrMET_allExceptGammaStats, (ch->second.channel+ch->second.bin +"_mt_InstrMET_absolute_shape_up").c_str() );
+        TH1* h_InstrMET_Down_allExceptGammaStats = (TH1*)utils::root::GetObjectFromPath(f_InstrMET_allExceptGammaStats, (ch->second.channel+ch->second.bin +"_mt_InstrMET_absolute_shape_down").c_str() );
+        if(!h_InstrMET_Up_allExceptGammaStats || !h_InstrMET_Down_allExceptGammaStats){continue;}
+        double integral_systInstrMET_up = h_InstrMET_Up_allExceptGammaStats->Integral();
+
+				if(it->second.shortName.find("instrmet")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["sys_normalization_zllinstrmet_13TeV"]    = integral_systInstrMET_up;}
+				if(it->second.shortName.find("instrmet")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["sys_normalization_zllinstrmet_13TeV"]    = integral_systInstrMET_up;}
+				if(it->second.shortName.find("instrmet")!=string::npos && chbin.Contains("vbf" )){shapeInfo.uncScale["sys_normalization_zllinstrmet_13TeV"]    = integral_systInstrMET_up;}
+        
+
+
       }
     }
   }
