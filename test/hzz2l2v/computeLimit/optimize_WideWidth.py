@@ -30,16 +30,17 @@ phase=-1
 
 MODELS=["SM"] #,"RsGrav","BulkGrav","Rad"] #Models which can be used are: "RsGrav", "BulkGrav", "Rad", "SM"
 based_key="2l2v_datadriven_" #mcbased_" #to run limits on MC use: 2l2v_mcbased_, to use data driven obj use: 2l2v_datadriven_
-jsonPath='$CMSSW_BASE/src/UserCode/llvv_fwk/test/hzz2l2v/samples_full2016_GGH_VBF.json' #samples_full2016_GGH_WithoutBckg.json' #samples_full2016_GGH_WithoutWZ.json' #samples_full2016_GGH_WithoutWZandZVV.json' #samples_full2016_GGH_WithoutIrriducible.json' #samples_full2016_GGH.json'
-inUrl='$CMSSW_BASE/src/UserCode/llvv_fwk/test/hzz2l2v/plotter_2017_05_12_forLimits.root' #plotter_2017_05_05_forLimits.root'
+jsonPath='$CMSSW_BASE/src/UserCode/llvv_fwk/test/hzz2l2v/samples_full2016_GGH.json' #samples_full2016_GGH_WithoutBckg.json' #samples_full2016_GGH_WithoutWZ.json' #samples_full2016_GGH_WithoutWZandZVV.json' #samples_full2016_GGH_WithoutIrriducible.json' #samples_full2016_GGH.json'
+inUrl='$CMSSW_BASE/src/UserCode/llvv_fwk/test/hzz2l2v/plotter_2017_05_28_forLimits.root' #plotter_2017_05_05_forLimits.root'
 BESTDISCOVERYOPTIM=True #Set to True for best discovery optimization, Set to False for best limit optimization
 ASYMTOTICLIMIT=True #Set to True to compute asymptotic limits (faster) instead of toy based hybrid-new limits
+#BINS = ["eq0jets,geq1jets,vbf"] # list individual analysis bins to consider as well as combined bins (separated with a coma but without space)
 BINS = ["eq0jets","geq1jets","vbf","eq0jets,geq1jets,vbf"] # list individual analysis bins to consider as well as combined bins (separated with a coma but without space)
 
 MASS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 2500, 3000]
-SUBMASS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 2500, 3000] 
+SUBMASS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 2500, 3000]
 
-LandSArgCommonOptions="  --BackExtrapol --statBinByBin 0.00001 --dropBckgBelow 0.00001  --subNRB --blind"
+LandSArgCommonOptions="  --BackExtrapol --statBinByBin 0.00001 --dropBckgBelow 0.00001  --subNRB"
 
 for model in MODELS:
    for shape in ["mt_shapes"]:# --histoVBF met_shapes"]:  #here run all the shapes you want to test.  '"mt_shapes --histoVBF met_shapes"' is a very particular case since we change the shape for VBF
@@ -48,9 +49,9 @@ for model in MODELS:
             for CP in [100.0,10.0,5.0]:
                if(CP!=100.0 and not ',' in bin):continue  #only do subchannel for SM
                for BRN in [0.0]:
-    
+
                    suffix = "_cp%4.2f_brn%4.2f" % (CP, BRN)
- 
+
                    #Run limit for ShapeBased GG+VBF
                    #signalSuffixVec += [ suffix ]
                    #OUTName         += ["SB13TeV_SM"]
@@ -58,17 +59,17 @@ for model in MODELS:
                    #BIN             += [bin]
                    #MODEL           += [model]
 
-                   #signalSuffixVec += [ suffix ]
-                   #OUTName         += ["SB13TeV_SM_GGF"]
-                   #LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + "  --systpostfix _13TeV --shape --skipQQH "]
-                   #BIN             += [bin]
-                   #MODEL          += [model]
-
                    signalSuffixVec += [ suffix ]
-                   OUTName         += ["SB13TeV_SM_VBF"]
-                   LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + "  --systpostfix _13TeV --shape --skipGGH "]
+                   OUTName         += ["SB13TeV_SM_GGF"]
+                   LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + "  --systpostfix _13TeV --shape --skipQQH "]
                    BIN             += [bin]
-                   MODEL           += [model]
+                   MODEL          += [model]
+
+#                   signalSuffixVec += [ suffix ]
+#                   OUTName         += ["SB13TeV_SM_VBF"]
+#                   LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + "  --systpostfix _13TeV --shape --skipGGH "]
+#                   BIN             += [bin]
+ #                  MODEL           += [model]
 
          elif(model=="RsGrav"):
                    signalSuffixVec += [ "" ]
@@ -101,8 +102,8 @@ def help() :
    print '\t 2 --> wrap-up and order the results either by best significance or best limit'
    print '\t 3 --> choose the best cuts for the selection and produce limits and control plots for this selection'
    print '\t 4 --> produce final limit plot (brazilian flag plot)'
-   print '\nNote: CMSSW_BASE must be set when launching optimize.py (current values is: ' + CMSSW_BASE + ')\n' 
-   
+   print '\nNote: CMSSW_BASE must be set when launching optimize.py (current values is: ' + CMSSW_BASE + ')\n'
+
 #parse the options
 try:
    # retrive command line options
@@ -122,7 +123,7 @@ for o,a in opts:
    elif o in('-p'): phase = int(a)
    elif o in('-o'): CWD=a
    elif o in('-j'): jsonUrl=a
-      
+
 if(phase<0 or len(CMSSW_BASE)==0):
    help()
    sys.exit(1)
@@ -136,7 +137,7 @@ def findCutIndex(cutsH, Gcut, m):
          if( (cutsH.GetYaxis().GetBinLabel(y).find("<")>=0 and cutsH.GetBinContent(i,y)>(Gcut[y-1].Eval(m,0,"")+0.000001)) or (cutsH.GetYaxis().GetBinLabel(y).find(">")>=0 and cutsH.GetBinContent(i,y)<(Gcut[y-1].Eval(m,0,"")-0.000001)) or  (cutsH.GetYaxis().GetBinLabel(y).find("<")==-1 and cutsH.GetYaxis().GetBinLabel(y).find(">")==-1 and cutsH.GetBinContent(i,y)<(Gcut[y-1].Eval(m,0,"")-0.000001)) ):
             passAllCuts=False;
             break;
-      if(passAllCuts==True): return i;   
+      if(passAllCuts==True): return i;
    return cutsH.GetXaxis().GetNbins()+1;
 
 def findSideMassPoint(mass):
@@ -153,7 +154,7 @@ def findSideMassPoint(mass):
 #Loop over all configurations
 iConf = -1
 cp = 0
-for signalSuffix in signalSuffixVec : 
+for signalSuffix in signalSuffixVec :
    iConf+=1;
    if(phase<=3 and ',' in BIN[iConf]):continue #only need individual bin for these phases
 
@@ -161,7 +162,7 @@ for signalSuffix in signalSuffixVec :
    LandSArg = LandSArgCommonOptions + ' ' + LandSArgOptions[iConf];
    if(signalSuffix != ""):LandSArg+=' --signalSufix \"' + signalSuffix +'\" '
    binSuffix = ""
-   if(',' not in BIN[iConf]):binSuffix="_"+ BIN[iConf]   
+   if(',' not in BIN[iConf]):binSuffix="_"+ BIN[iConf]
 
    DataCardsDir='cards_'+OUTName[iConf]+signalSuffix+binSuffix
 
@@ -171,7 +172,7 @@ for signalSuffix in signalSuffixVec :
 
    #get the cuts
    file = ROOT.TFile(inUrl)
-   cutsH = file.Get('ggH(200)_BOnly/all_optim_cut') 
+   cutsH = file.Get('ggH(200)_BOnly/all_optim_cut')
 
    #Cp
    if "100.0" in signalSuffix:
@@ -179,8 +180,8 @@ for signalSuffix in signalSuffixVec :
    elif "10.0" in signalSuffix:
 	cp = 10.0
    elif "5.0" in signalSuffix:
-        cp = 5.0     
- 
+        cp = 5.0
+
    ###################################################
    ##   OPTIMIZATION LOOP                           ##
    ###################################################
@@ -191,14 +192,14 @@ for signalSuffix in signalSuffixVec :
 
       FILE = open(OUT+"/LIST.txt","w")
       i = 1
-      while (i<cutsH.GetXaxis().GetNbins()+1):                   
+      while (i<cutsH.GetXaxis().GetNbins()+1):
           shapeCutMin_ = 0
           shapeCutMax_ = 9999
           SCRIPT = open(OUT+'script_'+str(i)+'_'+str(shapeCutMin_)+'_'+str(shapeCutMax_)+'.sh',"w")
           SCRIPT.writelines('cd ' + CMSSW_BASE + '/src;\n')
           SCRIPT.writelines("export SCRAM_ARCH="+os.getenv("SCRAM_ARCH","slc6_amd64_gcc491")+";\n")
           SCRIPT.writelines("eval `scram r -sh`;\n")
-          SCRIPT.writelines('cd -;\n')     
+          SCRIPT.writelines('cd -;\n')
           for j in range(0, 1): #always run 1points per jobs
              for m in MASS:
                 cardsdir = 'H'+ str(m) + '_' + OUTName[iConf] + '_' + str(i);
@@ -212,13 +213,13 @@ for signalSuffix in signalSuffixVec :
                 SCRIPT.writelines('cat LIMIT.log; cat SIGN.log\n')
                 SCRIPT.writelines('cd ..;\n')
                 #SCRIPT.writelines('mv ' + cardsdir + ' ' + OUT + '/.\n')
-                SCRIPT.writelines('rm -rd ' + cardsdir+';\n')            
+                SCRIPT.writelines('rm -rd ' + cardsdir+';\n')
           SCRIPT.close()
           LaunchOnCondor.SendCluster_Push(["BASH", 'sh ' + OUT+'script_'+str(i)+'_'+str(shapeCutMin_)+'_'+str(shapeCutMax_)+'.sh'])
           i = i+1#increment the cut index
       FILE.close()
       LaunchOnCondor.SendCluster_Submit()
-      
+
    ###################################################
    ##   WRAPPING UP RESULTS                         ##
    ###################################################
@@ -230,28 +231,28 @@ for signalSuffix in signalSuffixVec :
          print 'Starting mass ' + str(m)
          FILE.writelines("------------------------------------------------------------------------------------\n")
          BestLimit = []
-         fileList = commands.getstatusoutput("find " + OUT +" -name " + str(m)+"_*.log")[1].split();           
+         fileList = commands.getstatusoutput("find " + OUT +" -name " + str(m)+"_*.log")[1].split();
          for f in fileList:
             try:
                value = -1.0;
                if(BESTDISCOVERYOPTIM==True):
-                  exp = commands.getstatusoutput("cat " + f + " | grep \"Significance:\"")[1]; 
+                  exp = commands.getstatusoutput("cat " + f + " | grep \"Significance:\"")[1];
                   if(len(exp)<=0):continue
                   value = exp.split()[1]
                else:
-                  exp = commands.getstatusoutput("cat " + f + " | grep \"Expected 50.0%\"")[1];  
+                  exp = commands.getstatusoutput("cat " + f + " | grep \"Expected 50.0%\"")[1];
                   if(len(exp)<=0):continue
                   value = exp.split()[4]
 
-               if(value=='matches'):continue             
+               if(value=='matches'):continue
                if(float(value)<=0.0):continue
                if(BESTDISCOVERYOPTIM and float(value)>1000.0):continue #too high for a significance --> something is going wrong here
                f = f.replace(".log","")
                fields = f.split('_')
                N = len(fields)
-               index = fields[N-3] 
+               index = fields[N-3]
                Cuts = ''
-               for c in range(1, cutsH.GetYaxis().GetNbins()+1): 
+               for c in range(1, cutsH.GetYaxis().GetNbins()+1):
                   Cuts += str(cutsH.GetBinContent(int(index),c)).rjust(7) + " ("+str(cutsH.GetYaxis().GetBinLabel(c))+")   "
                BestLimit.append("mH="+str(m)+ " --> Limit/Significance=" + ('%010.6f' % float(value)) + "  Index: " + str(index)   + "  Cuts: " + Cuts + "   CutsOnShape: " + str(fields[N-2]).rjust(5) + " " + str(fields[N-1]).rjust(5))
             except:
@@ -281,16 +282,16 @@ for signalSuffix in signalSuffixVec :
 
       fileName = OUT+"/OPTIM"+signalSuffix
       fileName+=".txt"
-         
+
       mi=0
       for m in MASS:
          #if you want to display more than 3 options edit -m3 field
          cut_lines=commands.getstatusoutput("cat " + fileName + " | grep 'mH="+str(m)+"' -m20")[1].split('\n')
          if(len(cut_lines)<1):continue  #make sure that we get some lines
          if(len(cut_lines[0])<1):continue # make sure the line is not empty
-         print 'mH='+str(m)+'\tOption \tR \tLimits and Cuts' 
+         print 'mH='+str(m)+'\tOption \tR \tLimits and Cuts'
          ictr=1
-         for c in cut_lines: 
+         for c in cut_lines:
             cplit = c.split()
             print '\t #'+ str(ictr) + '\t' + cplit[2] + '\tIndex=' +  cplit[4] + '\t' + str(cplit[6:len(cplit)])
             ictr+=1
@@ -303,7 +304,7 @@ for signalSuffix in signalSuffixVec :
          for c in range(1, cutsH.GetYaxis().GetNbins()+1):
             cutString += str(cutsH.GetYaxis().GetBinLabel(c)) + cut_lines[opt].split()[6+(c-1)*2] + '\t'
             Gcut[c-1].SetPoint(mi, m, float(cut_lines[opt].split()[6+(c-1)*2]) );
-         cutString += cut_lines[opt].split()[6+(cutsH.GetYaxis().GetNbins()-1)*2 + 3 ] + '<shape<' + cut_lines[opt].split()[6+(cutsH.GetYaxis().GetNbins()-1)*2 + 4] 
+         cutString += cut_lines[opt].split()[6+(cutsH.GetYaxis().GetNbins()-1)*2 + 3 ] + '<shape<' + cut_lines[opt].split()[6+(cutsH.GetYaxis().GetNbins()-1)*2 + 4]
          print cutString
          Gcut[cutsH.GetYaxis().GetNbins()+0].SetPoint(mi, m, float(cut_lines[opt].split()[6+(cutsH.GetYaxis().GetNbins()-1)*2 + 3 ]) );
          Gcut[cutsH.GetYaxis().GetNbins()+1].SetPoint(mi, m, float(cut_lines[opt].split()[6+(cutsH.GetYaxis().GetNbins()-1)*2 + 4 ]) );
@@ -323,7 +324,7 @@ for signalSuffix in signalSuffixVec :
            #ans = raw_input('Use this fit and compute final limits? (y or n)\n')
            ans='y'
            if(ans=='y' or ans == 'Y'): break;
-           else:			       sys.exit(0);           
+           else:			       sys.exit(0);
       print 'YES'
 
       listcuts = open(OUT+'cuts.txt',"w")
@@ -354,7 +355,7 @@ for signalSuffix in signalSuffixVec :
                Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #also add a graph for shapeMin
                Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #also add a graph for shapeMax
 
-               INbinSuffix = "_" + bin 
+               INbinSuffix = "_" + bin
                IN = CWD+'/JOBS/'+OUTName[iConf]+signalSuffix+INbinSuffix+'/'
                try:
                   listcuts = open(IN+'cuts.txt',"r")
@@ -367,7 +368,7 @@ for signalSuffix in signalSuffixVec :
    #                     Gcut[c-1].SetPoint(mi, float(vals[0]), float(vals[c+1]));
                      mi+=1
                   for c in range(1, cutsH.GetYaxis().GetNbins()+3): Gcut[c-1].Set(mi);
-                  listcuts.close();          
+                  listcuts.close();
                except:
                   mi=0
                   for mtmp in SUBMASS:
@@ -407,7 +408,7 @@ for signalSuffix in signalSuffixVec :
            SCRIPT.writelines('mkdir -p out;\ncd out;\n')
 	   #SCRIPT.writelines("computeLimit --m " + str(m) + " --in " + inUrl + " " + " --index " + indexString + " --bins " + BIN[iConf] + " --json " + jsonUrl + " " + SideMassesArgs + " " + LandSArg + cutStr  +" ;\n")
            SCRIPT.writelines("computeLimit --m " + str(m) + " --in " + inUrl + " " + "--syst --index " + indexString + " --bins " + BIN[iConf] + " --json " + jsonUrl + " " + SideMassesArgs + " " + LandSArg + cutStr  +" ;\n")
-           SCRIPT.writelines("sh combineCards.sh;\n"); 
+           SCRIPT.writelines("sh combineCards.sh;\n");
 	   SCRIPT.writelines("text2workspace.py card_combined.dat -o workspace.root -P UserCode.llvv_fwk.HiggsWidth:higgswidth --PO verbose --PO \'is2l2nu\' --PO m=\'" + str(m) + "\' --PO w=\'" + str(cp) + "\' \n")
            #compute pvalue
            SCRIPT.writelines("combine -M ProfileLikelihood --signif --pvalue -m " +  str(m) + "  workspace.root > COMB.log;\n")
@@ -417,7 +418,8 @@ for signalSuffix in signalSuffixVec :
 	   ##fvbf=0 for GGH and 1 for VBF
            ### THIS IS FOR Asymptotic fit
            if(ASYMTOTICLIMIT==True):
-              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root --run blind -v 3 >  COMB.log;\n") 
+              #SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root --run blind -v 3 >  COMB.log;\n")
+              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root >  COMB.log;\n")
 
            ### THIS is for toy (hybridNew) fit
            else:
@@ -444,7 +446,7 @@ for signalSuffix in signalSuffixVec :
 
            SCRIPT.writelines('mkdir -p ' + CWD+'/'+cardsdir+';\n')
            SCRIPT.writelines('mv * ' + CWD+'/'+cardsdir+'/.;\n')
-           SCRIPT.writelines('cd ..;\n\n') 
+           SCRIPT.writelines('cd ..;\n\n')
            SCRIPT.close()
            #os.system('sh ' + OUT+'script_mass_'+str(m)+'.sh ')  #uncomment this line to launch interactively (this may take a lot of time)
            LaunchOnCondor.SendCluster_Push(["BASH", 'sh ' + OUT+'script_mass_'+str(m)+'.sh'])
@@ -464,11 +466,10 @@ for signalSuffix in signalSuffixVec :
       else:
          os.system("hadd -f "+DataCardsDir+"/LimitTree.root "+DataCardsDir+"/*/higgsCombineTest.HybridNewMerged.*.root > /dev/null")
 
-      os.system("root -l -b -q plotLimit.C+'(\""+DataCardsDir+"/Stength_\",\""+DataCardsDir+"/LimitTree.root\",\"\", false, true, 13 , 35914.143 )'")
+      os.system("root -l -b -q plotLimit.C+'(\""+DataCardsDir+"/Stength_\",\""+DataCardsDir+"/LimitTree.root\",\"\", false, false, 13 , 35914.143 )'")
 
    ######################################################################
 
 
 if(phase>5):
       help()
-
