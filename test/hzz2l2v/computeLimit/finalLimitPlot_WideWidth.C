@@ -368,13 +368,13 @@ void finalLimitPlot_WideWidth(){
         }
 
 
-        LEG = new TLegend(0.40,0.69,0.57,0.94);
+        LEG = new TLegend(0.35,0.4,0.8,0.55);
         LEG->SetTextFont(43); LEG->SetTextSize(15);   LEG->SetTextAlign(12);
         LEG->SetHeader("Observed");
         LEG->SetFillStyle(0);
         LEG->SetBorderSize(0);
 
-        TLegend* LEGExp = new TLegend(0.49,0.60,0.64,0.95);
+        TLegend* LEGExp = new TLegend(0.35,0.60,0.8,0.9);
         LEGExp->SetTextFont(43); LEGExp->SetTextSize(15);   LEGExp->SetTextAlign(12);
         LEGExp->SetHeader("Expected");
         LEGExp->SetFillStyle(0);
