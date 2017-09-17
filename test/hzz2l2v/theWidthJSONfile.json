@@ -1,0 +1,319 @@
+{
+    "proc": [
+        {
+            "data": [
+                {
+                    "br": [
+                        1.0
+                    ],
+                    "dset": [
+                        "/GluGluHToZZTo2L2Nu_M200_13TeV_powheg2_JHUgenV6_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+                    ],
+                    "dtag": "MC13TeV_GGtoH200toZZto2L2Nu_Sigh1_MELA_powheg_2016",
+                    "xsec": 1.0
+                }
+            ],
+            "fill": 0,
+            "isdata": false,
+            "isinvisible": true,
+            "issignal": true,
+            "keys": [
+                "2l2v_2016",
+                "2l2v_mcbased",
+                "2l2v_datadriven",
+                "2l2v_datadrivenplot",
+                "2l2v_datadriven_SM",
+                "2l2v_mcbased_SM"
+            ],
+            "lcolor": 619,
+            "lwidth": 2,
+            "resonance": 200,
+            "scalarWidth": "0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60",
+            "spimpose": true,
+            "tag": "ggH(200)_Sigh1",
+            "targetMela": 200
+        },
+        {
+            "data": [
+                {
+                    "br": [
+                        1.0
+                    ],
+                    "dset": [
+                        "/GluGluHToZZTo2L2Nu_M200_13TeV_powheg2_JHUgenV6_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+                    ],
+                    "dtag": "MC13TeV_GGtoH200toZZto2L2Nu_ContinuumOnly_MELA_powheg_2016",
+                    "xsec": 1.0
+                }
+            ],
+            "fill": 0,
+            "isdata": false,
+            "isinvisible": true,
+            "issignal": true,
+            "keys": [
+                "2l2v_2016",
+                "2l2v_mcbased",
+                "2l2v_datadriven",
+                "2l2v_datadrivenplot",
+                "2l2v_datadriven_SM",
+                "2l2v_mcbased_SM"
+            ],
+            "lcolor": 619,
+            "lwidth": 2,
+            "resonance": 200,
+            "scalarWidth": "0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60",
+            "spimpose": true,
+            "tag": "ggH(200)_ContinuumOnly",
+            "targetMela": 200
+        },
+        {
+            "data": [
+                {
+                    "br": [
+                        1.0
+                    ],
+                    "dset": [
+                        "/GluGluHToZZTo2L2Nu_M200_13TeV_powheg2_JHUgenV6_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+                    ],
+                    "dtag": "MC13TeV_GGtoH200toZZto2L2Nu_SandBandInterf_MELA_powheg_2016",
+                    "xsec": 1.0
+                }
+            ],
+            "fill": 0,
+            "isdata": false,
+            "isinvisible": true,
+            "issignal": true,
+            "keys": [
+                "2l2v_2016",
+                "2l2v_mcbased",
+                "2l2v_datadriven",
+                "2l2v_datadrivenplot",
+                "2l2v_datadriven_SM",
+                "2l2v_mcbased_SM"
+            ],
+            "lcolor": 619,
+            "lwidth": 2,
+            "resonance": 200,
+            "scalarWidth": "0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60",
+            "spimpose": true,
+            "tag": "ggH(200)_SandBandInterf",
+            "targetMela": 200
+        },
+        {
+            "data": [
+                {
+                    "br": [
+                        1.0
+                    ],
+                    "dset": [
+                        "/VBF_HToZZTo2L2Nu_M200_13TeV_powheg2_JHUgenV6_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+                    ],
+                    "dtag": "MC13TeV_VBFtoH200toZZto2L2Nu_Sigh1_MELA_powheg_2016",
+                    "xsec": 1.0
+                }
+            ],
+            "fill": 0,
+            "isdata": false,
+            "isinvisible": true,
+            "issignal": true,
+            "keys": [
+                "2l2v_2016",
+                "2l2v_mcbased",
+                "2l2v_datadriven",
+                "2l2v_datadrivenplot",
+                "2l2v_datadriven_SM",
+                "2l2v_mcbased_SM"
+            ],
+            "lcolor": 619,
+            "lstyle": 2,
+            "lwidth": 2,
+            "resonance": 200,
+            "scalarWidth": "0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60",
+            "spimpose": true,
+            "tag": "qqH(200)_Sigh1",
+            "targetMela": 200
+        },
+        {
+            "data": [
+                {
+                    "br": [
+                        1.0
+                    ],
+                    "dset": [
+                        "/VBF_HToZZTo2L2Nu_M200_13TeV_powheg2_JHUgenV6_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+                    ],
+                    "dtag": "MC13TeV_VBFtoH200toZZto2L2Nu_ContinuumOnly_MELA_powheg_2016",
+                    "xsec": 1.0
+                }
+            ],
+            "fill": 0,
+            "isdata": false,
+            "isinvisible": true,
+            "issignal": true,
+            "keys": [
+                "2l2v_2016",
+                "2l2v_mcbased",
+                "2l2v_datadriven",
+                "2l2v_datadrivenplot",
+                "2l2v_datadriven_SM",
+                "2l2v_mcbased_SM"
+            ],
+            "lcolor": 619,
+            "lstyle": 2,
+            "lwidth": 2,
+            "resonance": 200,
+            "scalarWidth": "0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60",
+            "spimpose": true,
+            "tag": "qqH(200)_ContinuumOnly",
+            "targetMela": 200
+        },
+        {
+            "data": [
+                {
+                    "br": [
+                        1.0
+                    ],
+                    "dset": [
+                        "/VBF_HToZZTo2L2Nu_M200_13TeV_powheg2_JHUgenV6_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+                    ],
+                    "dtag": "MC13TeV_VBFtoH200toZZto2L2Nu_SandBandInterf_MELA_powheg_2016",
+                    "xsec": 1.0
+                }
+            ],
+            "fill": 0,
+            "isdata": false,
+            "isinvisible": true,
+            "issignal": true,
+            "keys": [
+                "2l2v_2016",
+                "2l2v_mcbased",
+                "2l2v_datadriven",
+                "2l2v_datadrivenplot",
+                "2l2v_datadriven_SM",
+                "2l2v_mcbased_SM"
+            ],
+            "lcolor": 619,
+            "lstyle": 2,
+            "lwidth": 2,
+            "resonance": 200,
+            "scalarWidth": "0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60",
+            "spimpose": true,
+            "tag": "qqH(200)_SandBandInterf",
+            "targetMela": 200
+        },
+        {
+    "color": 592,
+    "data": [
+        {
+            "br": [
+                1.0
+            ],
+            "dset": [
+                "/GluGluToContinToZZTo2mu2nu_13TeV_MCFM701_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+            ],
+            "dtag": "MC13TeV_ggZZ2mu2nu_2016_Sigh1_MELA",
+            "xsec": 0.01898
+        },
+        {
+            "br": [
+                1.0
+            ],
+            "dset": [
+                "/GluGluToContinToZZTo2e2nu_13TeV_MCFM701_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+            ],
+            "dtag": "MC13TeV_ggZZ2e2nu_2016_Sigh1_MELA",
+            "xsec": 0.01898
+        }
+    ],
+    "isdata": false,
+    "keys": [
+        "2l2v_2016",
+        "2l2v_mcbased",
+        "2l2v_datadriven",
+        "2l2v_datadrivenplot",
+        "2l2v_photoncontrol",
+        "2l2v_datadriven_SM",
+        "2l2v_mcbased_SM"
+    ],
+    "mctruthmode": 1113,
+    "resonance": -1,
+    "tag": "ggToZZ_Sigh1"
+  },
+  {
+"color": 592,
+"data": [
+  {
+      "br": [
+          1.0
+      ],
+      "dset": [
+          "/GluGluToContinToZZTo2mu2nu_13TeV_MCFM701_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+      ],
+      "dtag": "MC13TeV_ggZZ2mu2nu_2016_ContinuumOnly_MELA",
+      "xsec": 0.01898
+  },
+  {
+      "br": [
+          1.0
+      ],
+      "dset": [
+          "/GluGluToContinToZZTo2e2nu_13TeV_MCFM701_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+      ],
+      "dtag": "MC13TeV_ggZZ2e2nu_2016_ContinuumOnly_MELA",
+      "xsec": 0.01898
+  }
+],
+"isdata": false,
+"keys": [
+  "2l2v_2016",
+  "2l2v_mcbased",
+  "2l2v_datadriven",
+  "2l2v_datadrivenplot",
+  "2l2v_photoncontrol",
+  "2l2v_datadriven_SM",
+  "2l2v_mcbased_SM"
+],
+"mctruthmode": 1113,
+"resonance": -1,
+"tag": "ggToZZ_ContinuumOnly"
+},
+{
+    "color": 592,
+    "data": [
+        {
+            "br": [
+                1.0
+            ],
+            "dset": [
+                "/GluGluToContinToZZTo2mu2nu_13TeV_MCFM701_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+            ],
+            "dtag": "MC13TeV_ggZZ2mu2nu_2016_SandBandInterf_MELA",
+            "xsec": 0.01898
+        },
+        {
+            "br": [
+                1.0
+            ],
+            "dset": [
+                "/GluGluToContinToZZTo2e2nu_13TeV_MCFM701_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM"
+            ],
+            "dtag": "MC13TeV_ggZZ2e2nu_2016_SandBandInterf_MELA",
+            "xsec": 0.01898
+        }
+    ],
+    "isdata": false,
+    "keys": [
+        "2l2v_2016",
+        "2l2v_mcbased",
+        "2l2v_datadriven",
+        "2l2v_datadrivenplot",
+        "2l2v_photoncontrol",
+        "2l2v_datadriven_SM",
+        "2l2v_mcbased_SM"
+    ],
+    "mctruthmode": 1113,
+    "resonance": -1,
+    "tag": "ggToZZ_SandBandInterf"
+  }
+    ]
+}
