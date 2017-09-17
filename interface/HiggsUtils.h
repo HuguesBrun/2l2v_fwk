@@ -61,7 +61,8 @@ namespace higgs{
     TGraph* weightNarrowResonnance(bool isVBF, double mass, double Cprime, double BRnew, TFile *nrLineShapesFile, double& Norm, TString pf);
     TGraph* weightGGZZContinuum(TFile *nrLineShapesFile, double& Norm, TString pf);
 
-    double weightNarrowResonnance_MELA( Mela& mela, bool isVBF, TString MelaMode, double Cprime, double resonance, fwlite::Event& eV);  
+    double weightHiggsWidthSample_MELA( Mela& mela, bool isVBF, TString MelaMode, double targetWidth, double heavyMass, fwlite::Event& eV);
+    double weightNarrowResonnance_MELA( Mela& mela, bool isVBF, TString MelaMode, double Cprime, double resonance, fwlite::Event& eV);
     float ComputeInterfWeight( Mela& mela, bool isVBF, TString MelaMode, double width, double mass, SimpleParticleCollection_t& daughters, SimpleParticleCollection_t& associated, SimpleParticleCollection_t& mothers);
     //float ComputeAllWeight( Mela& mela, bool isVBF, TString MelaMode, double kFactor, double width, double mass, SimpleParticleCollection_t& daughters, SimpleParticleCollection_t& associated, SimpleParticleCollection_t& mothers);
     TGraph* Get_NNLO_kFactors();

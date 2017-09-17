@@ -576,6 +576,177 @@ namespace higgs{
 	return Interf_weight;
 
    }
+      
+   double weightHiggsWidthSample_MELA( Mela& mela, bool isVBF, TString MelaMode, double targetWidth, double heavyMass, fwlite::Event& eV){
+       
+          //Mela mela( 13, heavyMass, TVar::DEBUG);
+          fwlite::Handle< LHEEventProduct > lheEv;
+          lheEv.getByLabel(eV, heavyMass>0?"externalLHEProducer":"source");
+          
+          //Weight to reweight the MELA shape to the real cross-section
+          double continuum_weight=0.001;
+       
+          //Fill a Map with Mass and Width SM Like
+          double heavyWidth=0; float weightSM=1; float weightMELA=1; float finalweight=1; float cpsweight=1;
+          float  propFixedW=1; float propCPSW=1;
+          
+          std::map< double, double>  SM_Info;
+          SM_Info[200]=1.43;  SM_Info[300]=8.43;  SM_Info[400]=29.3;
+          SM_Info[500]=68;    SM_Info[600]=123;   SM_Info[700]=199;
+          SM_Info[800]=304;   SM_Info[900]=499;   SM_Info[1000]=647;
+          SM_Info[1500]=1500; SM_Info[2000]=2000; SM_Info[2500]=2500;
+          SM_Info[3000]=3000;
+          
+          heavyWidth=SM_Info[heavyMass];
+          
+          SimpleParticleCollection_t daughters, mothers, associated; // associated;
+          TLorentzVector Higgs;
+          std::vector< TLorentzVector> Partons, AssPartons, Lep;
+          TLorentzVector AssGluon;
+          
+          bool isVBF_gqInitial(false);
+          
+          //Loop on particles and fill SimpleParticleCollection_t
+          for(int k=0; k<lheEv->hepeup().NUP; k++){
+              
+              //if( isVBF && k==5 ) continue;
+              int PdgId=0.; int Status=0.;
+              PdgId=lheEv->hepeup().IDUP.at(k);
+              Status=lheEv->hepeup().ISTUP.at(k);
+              double Px=lheEv->hepeup().PUP.at(k)[0]; double Py=lheEv->hepeup().PUP.at(k)[1];
+              double Pz=lheEv->hepeup().PUP.at(k)[2]; double  E=lheEv->hepeup().PUP.at(k)[3];
+              TLorentzVector check( Px, Py, Pz, E);
+              if( (abs(PdgId)<7.0 || PdgId==21.0) && Status<0.0 ){
+                  TLorentzVector partons( Px, Py, Pz, E);
+                  if (abs(PdgId)<7.0 && isVBF) mothers.push_back( SimpleParticle_t( PdgId, partons)); //Filling Infos
+                  else mothers.push_back(SimpleParticle_t(0, partons)); //Else fill gluons as 0 (unknown parton) in case the initial state is qg in ggF, or qg or gg in VBF
+                  if( isVBF && PdgId==21.0 && Status<0.0) isVBF_gqInitial = true;
+              } else if ( (abs(PdgId)<7.0 || PdgId==21.0) && Status>0.0){
+                  TLorentzVector extra_partons( Px, Py, Pz, E);
+                  if (abs(PdgId)<7.0 && isVBF) AssPartons.push_back( extra_partons );
+                  else if( PdgId==21.0 && isVBF ) AssGluon.SetPxPyPzE( Px, Py, Pz, E);
+                  //if (abs(PdgId)<7.0 && isVBF) associated.push_back( SimpleParticle_t( PdgId, extra_partons));
+                  //else if(abs(PdgId)==21.0 && isVBF) associated.push_back(SimpleParticle_t(0, extra_partons));
+              } else if ( abs(PdgId)==11.0 || abs(PdgId)==12.0 || abs(PdgId)==13.0 || abs(PdgId)==14.0 || abs(PdgId)==15.0 || abs(PdgId)==16.0 ){
+                  TLorentzVector lepP( Px, Py, Pz, E);
+                  daughters.push_back( SimpleParticle_t( PdgId, lepP)); //Filling Infos
+              } else if (  abs(PdgId)==25.0 ){
+                  Higgs.SetPxPyPzE( Px, Py, Pz, E);
+              }
+              
+          }
+          
+          unsigned int position = 10000;
+          if(isVBF){
+              float mindR = 100;
+              for(unsigned int s=0; s<AssPartons.size(); s++){
+                  float dR = AssPartons[s].DeltaR(AssGluon);
+                  if( dR < mindR){
+                      mindR = dR;
+                      position = s;
+                  }
+              }
+          }
+          
+          if(isVBF){
+              for(unsigned int ns=0; ns<AssPartons.size(); ns++){
+                  if(position==ns){
+                      TLorentzVector NewAss =  AssPartons[ns]+AssGluon;
+                      associated.push_back( SimpleParticle_t( 0, NewAss));
+                  }else{
+                      associated.push_back( SimpleParticle_t( 0, AssPartons[ns]));
+                  }
+              }
+          }
+          
+          std::sort( associated.begin(), associated.end(), utils::sort_CandidatesByPt_V2);
+          
+          mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ); //Mela Candidate mode initialized
+       
+          if (heavyMass>0){
+              if(isVBF){
+                  mela.setInputEvent(&daughters, &associated, &mothers, true);
+                  mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::JJVBF_S);
+                  mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                  mela.computeProdDecP( weightSM, false);
+                  //if(weightSM==0.)TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
+              }else{
+                  mela.setInputEvent(&daughters, 0, &mothers, true);
+                  mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+                  mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
+                  mela.computeP( weightSM, false);
+              }
+          }
+          else {
+              mela.setInputEvent(&daughters, 0, &mothers, true);
+              mela.setProcess( TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+              mela.computeP( weightSM, false);
+          }
+          //CPS pole scheme reweight
+          mela.setMelaHiggsMassWidth( 125, heavyWidth, 0);
+          mela.getXPropagator(TVar::FixedWidth, propFixedW);
+          mela.setMelaHiggsMassWidth( 125, heavyWidth, 0);
+          mela.getXPropagator(TVar::CPS, propCPSW);
+          cpsweight= propFixedW/propCPSW;
+       
+          //BSM reweighiting
+          mela.resetInputEvent();
+          
+          //heavyWidth=heavyWidth*CP*CP;
+          
+              if(isVBF){
+                  mela.setInputEvent(&daughters, &associated, &mothers, true);
+                  if(MelaMode.Contains("Continuum")){
+                      mela.setProcess( TVar::bkgZZ, TVar::MCFM, TVar::JJVBF_S);
+                  } else if(MelaMode.Contains("Sigh1")){
+                      mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::JJVBF_S);
+                      mela.setMelaHiggsMassWidth( 125, targetWidth*4.07e-3, 0);
+                  } else if(MelaMode.Contains("All")){
+                      mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::JJVBF_S);
+                      mela.setMelaHiggsMassWidth( 125, targetWidth*4.07e-3, 0);
+                  }
+                  mela.computeProdDecP( weightMELA, false);
+              }else{
+                  mela.setInputEvent(&daughters, 0, &mothers, true);
+                  if(MelaMode.Contains("Continuum")){
+                      mela.setProcess( TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+                  } else if(MelaMode.Contains("Sigh1")){
+                      mela.setProcess( TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+                      mela.setMelaHiggsMassWidth( 125, targetWidth*4.07e-3, 0);
+                  } else if(MelaMode.Contains("All")){
+                      mela.setProcess( TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+                      mela.setMelaHiggsMassWidth( 125, targetWidth*4.07e-3, 0);
+                  }
+                  mela.computeP( weightMELA, false);
+              }
+              
+       
+          mela.resetInputEvent();
+          
+          if(weightSM==0){ finalweight=0; }
+          else if(isVBF_gqInitial){ finalweight=0; }
+          else{ finalweight=(weightMELA/weightSM)*cpsweight*continuum_weight;}
+          
+          /*if(isnan(finalweight)){
+           printf(" \n");
+           printf("Particle Size: %5i WeightMELA: %20.18f WeightSM: %20.18f Continuum: %20.18f \n", lheEv->hepeup().NUP, weightMELA, weightSM, continuum_weight);
+           for(int k=0; k<lheEv->hepeup().NUP; k++){
+           
+           //if( isVBF && k==5 ) continue; 
+           int PdgId=0.; int Status=0.;
+           PdgId=lheEv->hepeup().IDUP.at(k);
+           Status=lheEv->hepeup().ISTUP.at(k);
+           double Px=lheEv->hepeup().PUP.at(k)[0]; double Py=lheEv->hepeup().PUP.at(k)[1];
+           double Pz=lheEv->hepeup().PUP.at(k)[2]; double  E=lheEv->hepeup().PUP.at(k)[3];
+           TLorentzVector check( Px, Py, Pz, E);
+           printf("Particle: %4i Mass: %10.5f Status: %4i Px: %10.5f Py: %10.5f Pz: %10.5f E: %10.5f Eta: %6.3f \n", PdgId, check.M(), Status, check.Px(), check.Py(), check.Pz(), check.E(), check.Eta());
+           }
+           }*/
+          
+          
+          return finalweight;
+          
+      }
 
    double weightNarrowResonnance_MELA( Mela& mela, bool isVBF, TString MelaMode, double CP, double heavyMass, fwlite::Event& eV){
 

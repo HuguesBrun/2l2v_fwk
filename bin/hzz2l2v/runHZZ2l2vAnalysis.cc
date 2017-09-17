@@ -100,6 +100,8 @@ int main(int argc, char* argv[])
   int mctruthmode=runProcess.getParameter<int>("mctruthmode");
   bool photonTriggerStudy = runProcess.getParameter<bool>("triggerstudy");
   TString dtag=runProcess.getParameter<std::string>("dtag");
+  bool isMELAwidth = runProcess.getParameter<bool>("doWidthWithMELA");
+
 
   TString suffix=runProcess.getParameter<std::string>("suffix");
   std::vector<std::string> urls=runProcess.getUntrackedParameter<std::vector<std::string> >("input");
@@ -145,7 +147,7 @@ int main(int argc, char* argv[])
   bool is2015MC = (isMC && dtag.Contains("2015"));
   bool is2016data = (!isMC && dtag.Contains("2016"));
   bool is2016MC = (isMC && dtag.Contains("2016"));
-  bool isMC_signal  = isMC && ( (string(dtag.Data()).find("GG" )  != string::npos) ||(string(dtag.Data()).find("VBF")  != string::npos )||dtag.Contains("RsGrav")||dtag.Contains("BulkGrav") || dtag.Contains("Radion") );
+  bool isMC_signal  = isMC && ( (string(dtag.Data()).find("GG" )  != string::npos) ||(string(dtag.Data()).find("VBF")  != string::npos )||(string(dtag.Data()).find("ggZZ2" )  != string::npos) || dtag.Contains("RsGrav")||dtag.Contains("BulkGrav") || dtag.Contains("Radion") );
   bool isMELA = isMC_signal && ( dtag.Contains("MELA") );
   bool isReHLT = isMC && ( ReHLT_inMC.Contains("reHLT") );
 
@@ -251,13 +253,23 @@ int main(int argc, char* argv[])
 //    NRparams.push_back(std::make_pair<double,double>(22,-1));
 //    NRparams.push_back(std::make_pair<double,double>(25,-1));
 //    NRparams.push_back(std::make_pair<double,double>(30,-1));
-  }else if( (suffix=="" || isMELA)  && (isMC_GG || isMC_VBF)){ //consider the other points only when no suffix is being used
+  }else if( (suffix=="" || isMELA)  && (isMC_GG || isMC_VBF || isMC_ggZZ2mu2nu || isMC_ggZZ2e2nu)){ //consider the other points only when no suffix is being used
 
-      //Fixed Width
-      NRparams.push_back(std::make_pair<double,double>( 100.0, 0.0) );
-      NRparams.push_back(std::make_pair<double,double>(  10.0, 0.0) );
-      NRparams.push_back(std::make_pair<double,double>(   5.0, 0.0) );
+      if (isMELAwidth){
+          cout << "will fill the params" << endl;
+          NRparams.push_back(std::make_pair<double,double>( 1.0, 0.0) );
+          NRparams.push_back(std::make_pair<double,double>( 5.0, 0.0) );
+          NRparams.push_back(std::make_pair<double,double>( 10.0, 0.0) );
+          NRparams.push_back(std::make_pair<double,double>( 25.0, 0.0) );
+          NRparams.push_back(std::make_pair<double,double>( 50.0, 0.0) );
 
+      }
+      else {
+          //Fixed Width
+          NRparams.push_back(std::make_pair<double,double>( 100.0, 0.0) );
+          NRparams.push_back(std::make_pair<double,double>(  10.0, 0.0) );
+          NRparams.push_back(std::make_pair<double,double>(   5.0, 0.0) );
+      }
       //Narrow Resonance
       //NRparams.push_back(std::make_pair<double,double>(1.0, 0.0) ); //cp, brnew
       //NRparams.push_back(std::make_pair<double,double>(0.6, 0.0) ); //cp, brnew
@@ -840,6 +852,8 @@ int main(int argc, char* argv[])
      int treeStep(ev.size()/50);
      if(treeStep==0){ treeStep = 1;}
      for(ev.toBegin(); !ev.atEnd(); ++ev){ iev++;
+         //cout << "iev=" << iev << endl;
+        // if (iev>10000) break;
          if(iev%treeStep==0){printf(".");fflush(stdout);}
          float weight = xsecWeight;
          double puWeightUp = 1.0;
@@ -917,15 +931,21 @@ int main(int argc, char* argv[])
                   for(unsigned int nri=0;nri<NRparams.size();nri++){
                      std::vector<std::pair<double, TGraph*> > shapeWgtGr = hLineShapeGrVec[NRparams[nri] ];
                      if(!isMELA){
-			for(size_t iwgt=0; iwgt<shapeWgtGr.size(); iwgt++){
+                         for(size_t iwgt=0; iwgt<shapeWgtGr.size(); iwgt++){
                         	lShapeWeights[nri][iwgt*2+0]=shapeWgtGr[iwgt].first;
                         	lShapeWeights[nri][iwgt*2+1]=shapeWgtGr[iwgt].second?shapeWgtGr[iwgt].second->Eval(higgs.mass()):1.0;
                     	 }
 		     }else if(isMELA){
+                 if (isMELAwidth){
+                     if (resonance<0) isMC_VBF = 0; //the continuum is not VBF
+                     lMelaShapeWeights[nri][MelaMode] = higgs::utils::weightHiggsWidthSample_MELA( mela, isMC_VBF, MelaMode, NRparams[nri].first, resonance, ev);
+                 }
+                 else {
 			//printf("MelaMode: %s CPrime: %5.3f MPole: %5f \n", MelaMode.c_str(), NRparams[nri].first, resonance);
                         lMelaShapeWeights[nri][MelaMode] = higgs::utils::weightNarrowResonnance_MELA( mela, isMC_VBF, MelaMode, NRparams[nri].first, resonance, ev);
-		     }
-
+                 }
+            }
+                
 		     double shape_SF =0; double shapescale_SF = 0;
 		     if( !isMELA ){ shape_SF = lShapeWeights[nri][1]; shapescale_SF = lShapeWeights[nri][0]; }
 		     else if( isMELA ){ shape_SF = lMelaShapeWeights[nri][MelaMode]; shapescale_SF = lMelaShapeWeights[nri][MelaMode]; }
