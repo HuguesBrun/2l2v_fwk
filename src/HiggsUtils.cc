@@ -683,11 +683,17 @@ namespace higgs{
               mela.computeP( weightSM, false);
           }
           //CPS pole scheme reweight
-          mela.setMelaHiggsMassWidth( 125, heavyWidth, 0);
+          //cout << "hello in CPS reweight, heavyMass=" << heavyMass << " heavyWidth=" << heavyWidth << endl;
+          mela.setMelaHiggsMassWidth( heavyMass, heavyWidth, 0);
           mela.getXPropagator(TVar::FixedWidth, propFixedW);
-          mela.setMelaHiggsMassWidth( 125, heavyWidth, 0);
+          mela.setMelaHiggsMassWidth( 125, 4.07e-3, 0);
           mela.getXPropagator(TVar::CPS, propCPSW);
-          cpsweight= propFixedW/propCPSW;
+	  if (heavyMass<0) propFixedW=1; // the sample is ggZZ so no propagator 
+          cpsweight= 1;//propFixedW/propCPSW;
+      
+          //cout << "propFixedW=" << propFixedW << endl;
+          //cout << "propCPSW=" << propCPSW << endl;
+	  //cout << "cpsweight=" << cpsweight << endl;
        
           //BSM reweighiting
           mela.resetInputEvent();
@@ -726,7 +732,7 @@ namespace higgs{
           if(weightSM==0){ finalweight=0; }
           else if(isVBF_gqInitial){ finalweight=0; }
           else{ finalweight=(weightMELA/weightSM)*cpsweight*continuum_weight;}
-          
+          //cout << "finalweight=" << finalweight << endl; 
           /*if(isnan(finalweight)){
            printf(" \n");
            printf("Particle Size: %5i WeightMELA: %20.18f WeightSM: %20.18f Continuum: %20.18f \n", lheEv->hepeup().NUP, weightMELA, weightSM, continuum_weight);
