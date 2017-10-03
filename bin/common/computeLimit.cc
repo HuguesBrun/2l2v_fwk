@@ -58,7 +58,7 @@ int mass;
 bool shape = false;
 TString postfix="";
 TString systpostfix="";
-bool runSystematics = false; 
+bool runSystematics = false;
 std::vector<TString> Channels;
 std::vector<string> AnalysisBins;
 double DDRescale = 1.0;
@@ -79,7 +79,7 @@ bool subDY = false;
 bool subWZ = false;
 bool subFake = false;
 bool blindData = false;
-bool blindWithSignal = false; 
+bool blindWithSignal = false;
 TString inFileUrl(""),jsonFile("");
 double shapeMin =-9999;
 double shapeMax = 9999;
@@ -140,6 +140,8 @@ class ShapeData_t
 {
   public:
   	std::map<string, double> uncScale;
+  	std::map<string, double> uncScale_down;
+  	std::map<string, double> uncScale_up;
   	std::map<string, TH1*  > uncShape;
   	TH1* fit;
 
@@ -156,6 +158,8 @@ class ShapeData_t
   	void clearSyst(){
      	TH1* nominal = histo();
      	uncScale.clear();
+     	uncScale_down.clear();
+     	uncScale_up.clear();
      	uncShape.clear();
      	uncShape[""] = nominal;
   	}
@@ -186,16 +190,16 @@ class ShapeData_t
 	TString InstrMET_gammaStats_Url(string(std::getenv("CMSSW_BASE"))+"/src/UserCode/llvv_fwk/data/InstrMET_systematics/InstrMET_systematics_GAMMASTATS.root");
 	TFile* f_InstrMET_gammaStats = TFile::Open(InstrMET_gammaStats_Url);
 	TH1* h_InstrMET_Up_gammaStats = (TH1*)utils::root::GetObjectFromPath(f_InstrMET_gammaStats, (channel_and_bin+"_mt_InstrMET_absolute_shape_up").c_str() );
-	TH1* h_InstrMET_Down_gammaStats = (TH1*)utils::root::GetObjectFromPath(f_InstrMET_gammaStats, (channel_and_bin+"_mt_InstrMET_absolute_shape_down").c_str() );   			
-	for(int ibin=1; ibin<=h->GetXaxis()->GetNbins(); ibin++){           
-          if( true /*h->GetBinContent(ibin)/h->Integral()>0.01*/){ //This condition is removed for the moment, we may put it back in the future. 
+	TH1* h_InstrMET_Down_gammaStats = (TH1*)utils::root::GetObjectFromPath(f_InstrMET_gammaStats, (channel_and_bin+"_mt_InstrMET_absolute_shape_down").c_str() );
+	for(int ibin=1; ibin<=h->GetXaxis()->GetNbins(); ibin++){
+          if( true /*h->GetBinContent(ibin)/h->Integral()>0.01*/){ //This condition is removed for the moment, we may put it back in the future.
 
 	    char ibintxt[255]; sprintf(ibintxt, "_b%i", BIN);BIN++;
 	    TH1* statU=(TH1 *)h->Clone(TString(h->GetName())+"StatU"+ibintxt);//  statU->Reset();
-	    TH1* statD=(TH1 *)h->Clone(TString(h->GetName())+"StatD"+ibintxt);//  statD->Reset();           
+	    TH1* statD=(TH1 *)h->Clone(TString(h->GetName())+"StatD"+ibintxt);//  statD->Reset();
 
 	    statU->SetBinContent(ibin, std::max(0.0, h_InstrMET_Up_gammaStats->GetBinContent(ibin))>0 ? h_InstrMET_Up_gammaStats->GetBinContent(ibin) : 0.115);
-	    statD->SetBinContent(ibin, std::max(0.0, h_InstrMET_Down_gammaStats->GetBinContent(ibin))); 
+	    statD->SetBinContent(ibin, std::max(0.0, h_InstrMET_Down_gammaStats->GetBinContent(ibin)));
 	    uncShape[prefix+"stat"+suffix+ibintxt+suffix2+"Up"  ] = statU;
 	    uncShape[prefix+"stat"+suffix+ibintxt+suffix2+"Down"] = statD;
 
@@ -210,30 +214,30 @@ class ShapeData_t
 
 				if(v_lowStatBin.size()>0){
         	for(unsigned int j=0; j < v_lowStatBin.size(); j++){
-            statU->SetBinContent(v_lowStatBin[j], std::max(0.0, h_InstrMET_Up_gammaStats->GetBinContent(v_lowStatBin[j])));   
-            statD->SetBinContent(v_lowStatBin[j], std::max(0.0, h_InstrMET_Down_gammaStats->GetBinContent(v_lowStatBin[j])));   
+            statU->SetBinContent(v_lowStatBin[j], std::max(0.0, h_InstrMET_Up_gammaStats->GetBinContent(v_lowStatBin[j])));
+            statD->SetBinContent(v_lowStatBin[j], std::max(0.0, h_InstrMET_Down_gammaStats->GetBinContent(v_lowStatBin[j])));
         	}
      			uncShape[prefix+"stat"+suffix+"Up"  ] = statU;
      			uncShape[prefix+"stat"+suffix+"Down"] = statD;
-        }	
+        }
 
 				//f_InstrMET_gammaStats->Close();
      		delete h; //all done with this copy
 
 			}
      	else{
-    
+
     TH1* h = (TH1*) histo()->Clone("TMPFORSTAT");
 
      	//bin by bin stat uncertainty
      	if(statBinByBin>0 && shape==true && !noBinByBin){
         int BIN=0;
-        for(int ibin=1; ibin<=h->GetXaxis()->GetNbins(); ibin++){           
+        for(int ibin=1; ibin<=h->GetXaxis()->GetNbins(); ibin++){
           if( !(h->GetBinContent(ibin)<=0 && h->GetBinError(ibin)>0) &&  (h->GetBinContent(ibin)<=0 || h->GetBinContent(ibin)/h->Integral()<0.01 || h->GetBinError(ibin)/h->GetBinContent(ibin)<statBinByBin))continue;
 					//           if(h->GetBinContent(ibin)<=0)continue;
           char ibintxt[255]; sprintf(ibintxt, "_b%i", BIN);BIN++;
           TH1* statU=(TH1 *)h->Clone(TString(h->GetName())+"StatU"+ibintxt);//  statU->Reset();
-          TH1* statD=(TH1 *)h->Clone(TString(h->GetName())+"StatD"+ibintxt);//  statD->Reset();           
+          TH1* statD=(TH1 *)h->Clone(TString(h->GetName())+"StatD"+ibintxt);//  statD->Reset();
           if(h->GetBinContent(ibin)>0){
             statU->SetBinContent(ibin,std::min(2*h->GetBinContent(ibin), std::max(0.01*h->GetBinContent(ibin), h->GetBinContent(ibin) + h->GetBinError(ibin))));   statU->SetBinError(ibin, 0.0);
             statD->SetBinContent(ibin,std::min(2*h->GetBinContent(ibin), std::max(0.01*h->GetBinContent(ibin), h->GetBinContent(ibin) - h->GetBinError(ibin))));   statD->SetBinError(ibin, 0.0);
@@ -276,7 +280,7 @@ class ShapeData_t
      	for(std::map<string, double>::iterator unc=uncScale.begin();unc!=uncScale.end();unc++){
         if(unc->second<0)continue;
         Total+=pow(unc->second,2);
-     	}     
+     	}
      	return Total>0?sqrt(Total):-1;
   	}
 
@@ -293,7 +297,7 @@ class ShapeData_t
 			 	TH1* h = (TH1*)(this->histo()->Clone((name+"Nominal").c_str()));
 		   	double yield = h->Integral();
        	Total+=pow(varYield-yield,2); //the total shape unc is the sqrt of the quadratical sum of the difference between the nominal and the variated yields.
-     	}     
+     	}
      	return Total>0?sqrt(Total):-1;
   	}
 
@@ -312,16 +316,16 @@ class ShapeData_t
 			 	TH1* h = (TH1*)(this->histo()->Clone((name+"Nominal").c_str()));
 		   	double yield = h->GetBinContent(bin);
        	Total+=pow(varYield-yield,2); //the total shape unc is the sqrt of the quadratical sum of the difference between the nominal and the variated yields.
-     	}     
+     	}
      	return Total>0?sqrt(Total):-1;
   	}
 
 
   	void rescaleScaleUncertainties(double StartIntegral, double EndIntegral){
      	for(std::map<string, double>::iterator unc=uncScale.begin();unc!=uncScale.end();unc++){
-        printf("%E/%E = %E = %E/%E\n", unc->second, StartIntegral, unc->second/StartIntegral, EndIntegral * (unc->second/StartIntegral), EndIntegral); 
+        printf("%E/%E = %E = %E/%E\n", unc->second, StartIntegral, unc->second/StartIntegral, EndIntegral * (unc->second/StartIntegral), EndIntegral);
         if(StartIntegral!=0){unc->second = EndIntegral * (unc->second/StartIntegral);}else{unc->second = unc->second * EndIntegral;}
-     	}     
+     	}
   	}
 
 
@@ -364,7 +368,7 @@ class AllInfo_t
 		AllInfo_t(){};
 		~AllInfo_t(){};
 
-    // reorder the procs to get the backgrounds; total bckg, signal, data 
+    // reorder the procs to get the backgrounds; total bckg, signal, data
     void sortProc();
 
     // Sum up all background processes and add this as a total process
@@ -403,10 +407,10 @@ class AllInfo_t
     // Make a summary plot
     void saveHistoForLimit(string histoName, TFile* fout);
 
-    // Add hardcoded uncertainties 
+    // Add hardcoded uncertainties
     void addHardCodedUncertainties(string histoName);
 
-    // produce the datacards 
+    // produce the datacards
     void buildDataCards(string histoName, TString url);
 
     // Load histograms from root file and json to memory
@@ -428,13 +432,13 @@ class AllInfo_t
     // Rebin histograms to make sure that high mt/met region have no empty bins
     void rebinMainHisto(string histoName);
 
-    // Interpollate the signal sample between two mass points 
+    // Interpollate the signal sample between two mass points
     void SignalInterpolation(string histoName);
 
     // scale VBF production to VBF/GGF SM prediction;
-    void scaleVBF(string histoName);          
+    void scaleVBF(string histoName);
 
-    // Rescale signal sample for the effect of the interference and propagate the uncertainty 
+    // Rescale signal sample for the effect of the interference and propagate the uncertainty
     void RescaleForInterference(string histoName);
 
     //Merge bins together
@@ -492,7 +496,7 @@ void printHelp()
   printf("--inclusive  --> merge bins to make the analysis inclusive\n");
   printf("--dropBckgBelow --> drop all background processes that contributes for less than a threshold to the total background yields\n");
   printf("--scaleVBF    --> scale VBF signal by ggH/VBF\n");
-  printf("--key        --> provide a key for sample filtering in the json\n");  
+  printf("--key        --> provide a key for sample filtering in the json\n");
 }
 
 //
@@ -508,13 +512,13 @@ int main(int argc, char* argv[])
   gStyle->SetTitleYOffset(1.45);
   gStyle->SetPalette(1);
   gStyle->SetNdivisions(505);
-  gStyle->SetOptStat(0);  
+  gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
 
   //get input arguments
   for(int i=1;i<argc;i++){
     string arg(argv[i]);
-    if(arg.find("--help")          !=string::npos) { printHelp(); return -1;} 
+    if(arg.find("--help")          !=string::npos) { printHelp(); return -1;}
     else if(arg.find("--minSignalYield") !=string::npos && i+1<argc)  { sscanf(argv[i+1],"%lf",&minSignalYield ); i++; printf("minSignalYield = %f\n", minSignalYield);}
     else if(arg.find("--scaleVBF") !=string::npos) { scaleVBF=true; printf("scaleVBF = True\n");}
     else if(arg.find("--subNRB")   !=string::npos) { subNRB=true; skipWW=true; printf("subNRB = True\n");}
@@ -587,7 +591,7 @@ int main(int argc, char* argv[])
   for(unsigned int b=0;b<AnalysisBins.size();b++){
     if(AnalysisBins[b].find('+')!=std::string::npos){
       std::vector<string> subBins;
-      char* pch = strtok(&AnalysisBins[b][0],"+"); 
+      char* pch = strtok(&AnalysisBins[b][0],"+");
       while (pch!=NULL){
         indexcutV.push_back(indexcutV[b]);
         indexcutVL.push_back(indexcutVL[b]);
@@ -650,7 +654,7 @@ int main(int argc, char* argv[])
     }
     double cutMin=shapeMin; double cutMax=shapeMax;
     if((shapeMinVBF!=shapeMin || shapeMaxVBF!=shapeMax) && AnalysisBins[b].find("vbf")!=string::npos){cutMin=shapeMinVBF; cutMax=shapeMaxVBF;}
-    allInfo.getShapeFromFile(inF,    channelsAndShapes, indexcutM[AnalysisBins[b]], Root, cutMin, cutMax   );     
+    allInfo.getShapeFromFile(inF,    channelsAndShapes, indexcutM[AnalysisBins[b]], Root, cutMin, cutMax   );
   }
 
 
@@ -706,7 +710,7 @@ int main(int argc, char* argv[])
   //extrapolate backgrounds toward higher mt/met region to make sure that there is no empty bins
   if(shape && BackExtrapol)allInfo.rebinMainHisto(histo.Data());
 
-  // add the syst. on the Instr MET 
+  // add the syst. on the Instr MET
   allInfo.addInstrMetSyst_2017(selCh,histo);
 
   //drop backgrounds with rate<1%
@@ -715,7 +719,7 @@ int main(int argc, char* argv[])
   //drop control channels
   allInfo.dropCtrlChannels(selCh);
 
-  //merge bins  
+  //merge bins
   for(unsigned int B=0;B<binsToMerge.size();B++){
     std::string NewBinName = string("["); binsToMerge[B][0];  for(unsigned int b=1;b<binsToMerge[B].size();b++){NewBinName += "+"+binsToMerge[B][b];} NewBinName+="]";
     allInfo.mergeBins(binsToMerge[B],NewBinName);
@@ -761,7 +765,7 @@ int main(int argc, char* argv[])
 }
 
 //
-// reorder the procs to get the backgrounds; total bckg, signal, data 
+// reorder the procs to get the backgrounds; total bckg, signal, data
 //
 void AllInfo_t::sortProc(){
   std::vector<string>bckg_procs;
@@ -804,7 +808,7 @@ void AllInfo_t::addChannel(ChannelInfo_t& dest, ChannelInfo_t& src, bool compute
       }
     }
 
-    //take care of the scale uncertainty 
+    //take care of the scale uncertainty
     for(std::map<string, double>::iterator unc = sh->second.uncScale.begin();unc!= sh->second.uncScale.end();unc++){
       if(shapesInfoDest[sh->first].uncScale.find(unc->first)==shapesInfoDest[sh->first].uncScale.end()){
         shapesInfoDest[sh->first].uncScale[unc->first] = unc->second;
@@ -812,7 +816,7 @@ void AllInfo_t::addChannel(ChannelInfo_t& dest, ChannelInfo_t& src, bool compute
         shapesInfoDest[sh->first].uncScale[unc->first] = sqrt( pow(shapesInfoDest[sh->first].uncScale[unc->first],2) + pow(unc->second,2) );
       }
     }
-  }  
+  }
   }
   else{
 
@@ -829,7 +833,7 @@ void AllInfo_t::addChannel(ChannelInfo_t& dest, ChannelInfo_t& src, bool compute
       //2. we remove the nominal value of the process we are running on
       shapesInfoDest[sh->first].uncShape[uncS->first]->Add(shapesInfoSrc[sh->first].uncShape[""], -1);
       //3. and add the variation up/down
-			shapesInfoDest[sh->first].uncShape[uncS->first]->Add(uncS->second); 
+			shapesInfoDest[sh->first].uncShape[uncS->first]->Add(uncS->second);
 		}
   }
 
@@ -861,7 +865,7 @@ void AllInfo_t::addProc(ProcessInfo_t& dest, ProcessInfo_t& src, bool computeSys
 // Sum up all background processes and add this as a total process
 //
 void AllInfo_t::computeTotalBackground(){
-  for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)=="total"){sorted_procs.erase(p);break;}}           
+  for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)=="total"){sorted_procs.erase(p);break;}}
   sorted_procs.push_back("total");
   procs["total"] = ProcessInfo_t(); //reset
   ProcessInfo_t& procInfo_Bckgs = procs["total"];
@@ -896,7 +900,7 @@ void AllInfo_t::blind(){
 
   if(true){ //always replace data
     //if(procs.find("data")==procs.end()){ //true only if there is no "data" samples in the json file
-    sorted_procs.push_back("data");           
+    sorted_procs.push_back("data");
     procs["data"] = ProcessInfo_t(); //reset
     ProcessInfo_t& procInfo_Data = procs["data"];
     procInfo_Data.shortName = "data";
@@ -994,9 +998,9 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
   std::vector<string> VectorProc;
   std::map<string, bool> MapChannel;
-  std::map<string, std::map<string, string> > MapProcChYields;         
+  std::map<string, std::map<string, string> > MapProcChYields;
   std::map<string, bool> MapChannelBin;
-  std::map<string, std::map<string, string> > MapProcChYieldsBin;         
+  std::map<string, std::map<string, string> > MapProcChYieldsBin;
 
   std::map<string, string> rows;
   std::map<string, string> rowsBin;
@@ -1049,7 +1053,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       rows[ch->first] += string("&") + YieldText;
 
       TString LabelText = TString("$") + ch->second.channel+ " " +ch->second.bin + TString("$");
-      LabelText.ReplaceAll("eq"," ="); LabelText.ReplaceAll("g =","\\geq"); LabelText.ReplaceAll("l =","\\leq"); 
+      LabelText.ReplaceAll("eq"," ="); LabelText.ReplaceAll("g =","\\geq"); LabelText.ReplaceAll("l =","\\leq");
       LabelText.ReplaceAll("_OS","OS "); LabelText.ReplaceAll("el","e"); LabelText.ReplaceAll("mu","\\mu");  LabelText.ReplaceAll("ha","\\tau_{had}");
 
       TString BinText = TString("$") + ch->second.bin + TString("$");
@@ -1076,7 +1080,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     if(bin_systDown  [" Inc."] <= 0) bin_systDown  ["Inc"]=-1; //If negative value, or 0, set it to -1
 
     for(std::map<string, double>::iterator bin=bin_val.begin(); bin!=bin_val.end(); bin++){
-      string YieldText = "";                 
+      string YieldText = "";
       if(it->first=="data" || it->first=="total" || bin->first==" Inc.")YieldText += "\\boldmath ";
       if(it->first=="data"){char tmp[256];sprintf(tmp, "%.0f", bin_val[bin->first]); YieldText += tmp;  //unblinded
 				//                 if(it->first=="data"){char tmp[256];sprintf(tmp, "-"); rowsBin[bin->first] += tmp;  //blinded
@@ -1086,11 +1090,11 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       rowsBin[bin->first] += string("&") + YieldText;
 
       MapChannelBin[bin->first] = true;
-      MapProcChYieldsBin[it->first][bin->first] = YieldText;                
+      MapProcChYieldsBin[it->first][bin->first] = YieldText;
 
       if(bin->first==" Inc."){
         MapChannel[bin->first] = true;
-        MapProcChYields[it->first][bin->first] = YieldText;                
+        MapProcChYields[it->first][bin->first] = YieldText;
       }
       }
     }
@@ -1126,15 +1130,15 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       if(*proc=="total")fprintf(pFile, "\\hline\n");
       auto ChannelYields = MapProcChYields.find(*proc);
       if(ChannelYields == MapProcChYields.end())continue;
-      fprintf(pFile, "%s ", proc->c_str()); 
-      for(auto ch = MapChannel.begin(); ch!=MapChannel.end();ch++){ 
+      fprintf(pFile, "%s ", proc->c_str());
+      for(auto ch = MapChannel.begin(); ch!=MapChannel.end();ch++){
         fprintf(pFile, " & ");
         if(ChannelYields->second.find(ch->first)!=ChannelYields->second.end()){
           fprintf(pFile, " %s", (ChannelYields->second)[ch->first].c_str());
         }
       }
       fprintf(pFile, "\\\\\n");
-      if(*proc=="data")fprintf(pFile, "\\hline\n");             
+      if(*proc=="data")fprintf(pFile, "\\hline\n");
     }
     fprintf(pFile,"\\hline\n");
     fprintf(pFile,"\\end{tabular}\n\\end{center}\n\\end{sidewaystable}\n");
@@ -1147,15 +1151,15 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       if(*proc=="total")fprintf(pFileInc, "\\hline\n");
       auto ChannelYields = MapProcChYieldsBin.find(*proc);
       if(ChannelYields == MapProcChYieldsBin.end())continue;
-      fprintf(pFileInc, "%s ", proc->c_str()); 
-      for(auto ch = MapChannelBin.begin(); ch!=MapChannelBin.end();ch++){ 
+      fprintf(pFileInc, "%s ", proc->c_str());
+      for(auto ch = MapChannelBin.begin(); ch!=MapChannelBin.end();ch++){
         fprintf(pFileInc, " & ");
         if(ChannelYields->second.find(ch->first)!=ChannelYields->second.end()){
           fprintf(pFileInc, " %s", (ChannelYields->second)[ch->first].c_str());
         }
       }
       fprintf(pFileInc, "\\\\\n");
-      if(*proc=="data")fprintf(pFileInc, "\\hline\n");             
+      if(*proc=="data")fprintf(pFileInc, "\\hline\n");
     }
     fprintf(pFileInc,"\\hline\n");
     fprintf(pFileInc,"\\end{tabular}\n\\end{center}\n\\end{sidewaystable}\n");
@@ -1210,7 +1214,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
   //
   void AllInfo_t::dropSmallBckgProc(std::vector<TString>& selCh, string histoName, double threshold)
   {
-    std::map<string, double> map_yields;          
+    std::map<string, double> map_yields;
     for(unsigned int p=0;p<sorted_procs.size();p++){
       string procName = sorted_procs[p];
       std::map<string, ProcessInfo_t>::iterator it=procs.find(procName);
@@ -1268,7 +1272,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         if(std::find(selCh.begin(), selCh.end(), ch->second.channel)==selCh.end())continue;
         if(ch->second.shapes.find(histoName.Data())==(ch->second.shapes).end())continue;
         TH1* h = ch->second.shapes[histoName.Data()].histo();
-        //if(process.Contains("SOnly_S") ) h->Scale(10);  
+        //if(process.Contains("SOnly_S") ) h->Scale(10);
         if(it->first=="total"){
           //double Uncertainty = std::max(0.0, ch->second.shapes[histoName.Data()].getScaleUncertainty() / h->Integral() );;
           double syst_scale = std::max(0.0, ch->second.shapes[histoName.Data()].getScaleUncertainty());
@@ -1282,7 +1286,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 					//                    errors->SetFillStyle(3427);
 					//                    errors->SetFillColor(kGray+1);
           errors->SetFillStyle(3005);
-          errors->SetFillColor(kGray+3);                    
+          errors->SetFillColor(kGray+3);
           errors->SetLineStyle(1);
           errors->SetLineColor(1);
           int icutg=0;
@@ -1308,13 +1312,13 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           errors->SetMaximum(Maximum);
           map_unc[ch->first] = errors;
           continue;//otherwise it will fill the legend
-        }else if(it->second.isBckg){                 
+        }else if(it->second.isBckg){
           if(map_stack.find(ch->first)==map_stack.end()){
-            map_stack[ch->first] = new THStack((ch->first+"stack").c_str(),(ch->first+"stack").c_str());                    
+            map_stack[ch->first] = new THStack((ch->first+"stack").c_str(),(ch->first+"stack").c_str());
           }
           map_stack   [ch->first]->Add(h,"HIST");
 
-        }else if(it->second.isSign){                    
+        }else if(it->second.isSign){
           map_signals [ch->first].push_back(h);
 
         }else if(it->first=="data"){
@@ -1358,7 +1362,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     //fill the legend in reverse order
     while(!legEntries.empty()){
       legA->AddEntry(legEntries.back()->GetObject(), legEntries.back()->GetLabel(), legEntries.back()->GetOption());
-      legEntries.pop_back();      
+      legEntries.pop_back();
     }
     if(map_unc.begin()!=map_unc.end())legA->AddEntry(map_unc.begin()->second, "Syst. + Stat.", "F");
 
@@ -1377,11 +1381,11 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       //init tab
       TVirtualPad* pad = t1->cd(I);
       pad->SetTopMargin(0.06); pad->SetRightMargin(0.03); pad->SetBottomMargin(I<=NBins?0.09:0.12);  pad->SetLeftMargin((I-1)%NBins!=0?0.09:0.12);
-      pad->SetLogy(true); 
+      pad->SetLogy(true);
 
       //print histograms
       TH1* axis = (TH1*)map_data[p->first]->Clone("axis");
-      axis->Reset();      
+      axis->Reset();
       axis->GetXaxis()->SetRangeUser(axis->GetXaxis()->GetXmin(), axis->GetXaxis()->GetXmax());
       double signalHeight=0; for(unsigned int s=0;s<map_signals[p->first].size();s++){signalHeight = std::max(signalHeight, map_signals[p->first][s]->GetMaximum());}
       axis->SetMaximum(1.5*std::max(signalHeight , std::max( map_unc[p->first]->GetMaximum(), map_data[p->first]->GetMaximum())));
@@ -1417,7 +1421,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           double y=histdata->GetBinContent(xi);
           double yData=histdata->GetBinContent(xi);
 
-          int graphBin=-1;  for(int k=0;k<map_unc[p->first]->GetN();k++){if(fabs(map_unc[p->first]->GetX()[k] - x)<histdata->GetBinWidth(xi)){graphBin=k;}} 
+          int graphBin=-1;  for(int k=0;k<map_unc[p->first]->GetN();k++){if(fabs(map_unc[p->first]->GetX()[k] - x)<histdata->GetBinWidth(xi)){graphBin=k;}}
           if(graphBin<0){
             printf("MC bin not found for X=%f\n", x);
           }else{
@@ -1428,7 +1432,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
             }else{     tex->DrawLatex(x-0.02*Xrange,y*1.15,Form("#color[4]{B=%.2f#pm%.2f}",yMC, yMCerr));
             }
           }
-          tex->DrawLatex(x+0.02*Xrange,y*1.15,Form("D=%.0f",yData));                 
+          tex->DrawLatex(x+0.02*Xrange,y*1.15,Form("D=%.0f",yData));
         }
       }
 
@@ -1436,7 +1440,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       TPaveText* Label = new TPaveText(0.1,0.81,0.94,0.89, "NDC");
       Label->SetFillColor(0);  Label->SetFillStyle(0);  Label->SetLineColor(0); Label->SetBorderSize(0);  Label->SetTextAlign(31);
       TString LabelText = procs["data"].channels[p->first].channel+"  "+procs["data"].channels[p->first].bin;
-      LabelText.ReplaceAll("eq","="); LabelText.ReplaceAll("l=","#leq");LabelText.ReplaceAll("g=","#geq"); 
+      LabelText.ReplaceAll("eq","="); LabelText.ReplaceAll("l=","#leq");LabelText.ReplaceAll("g=","#geq");
       LabelText.ReplaceAll("_OS","OS "); LabelText.ReplaceAll("el","e"); LabelText.ReplaceAll("mu","#mu");  LabelText.ReplaceAll("ha","#tau_{had}");
       Label->AddText(LabelText);  Label->Draw();
 
@@ -1468,7 +1472,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     char LumiText[1024];
     if(systpostfix.Contains('3'))      { double iLumi= 35914;sprintf(LumiText, "%.1f %s^{-1} (%.0f TeV)", iLumi>100?iLumi/1000:iLumi, iLumi>100?"fb":"pb", 13.0);
     }else if(systpostfix.Contains('8')){ double iLumi=20000;sprintf(LumiText, "%.1f %s^{-1} (%.0f TeV)", iLumi>100?iLumi/1000:iLumi, iLumi>100?"fb":"pb", 8.0);
-    }else{                               double iLumi= 5000;sprintf(LumiText, "%.1f %s^{-1} (%.0f TeV)", iLumi>100?iLumi/1000:iLumi, iLumi>100?"fb":"pb", 7.0); 
+    }else{                               double iLumi= 5000;sprintf(LumiText, "%.1f %s^{-1} (%.0f TeV)", iLumi>100?iLumi/1000:iLumi, iLumi>100?"fb":"pb", 7.0);
     }
     TPaveText* T1 = new TPaveText(1.0-R-0.50, 1.0-T-0.05, 1.02-R, 1.0-T-0.005, "NDC");
     T1->SetTextFont(43); T1->SetTextSize(23);   T1->SetTextAlign(31);
@@ -1510,7 +1514,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     for(unsigned int p=0;p<sorted_procs.size();p++){
       int NLegEntry = 0;
       std::map<string, int               > map_legend;
-      std::vector<TH1*>                    toDelete;             
+      std::vector<TH1*>                    toDelete;
       TLegend* legA  = new TLegend(0.03,0.89,0.97,0.95, "");
 
       string procName = sorted_procs[p];
@@ -1545,11 +1549,11 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         if((it->second.shortName).find("ggH")!=std::string::npos)ch->second.shapes[histoName.Data()].makeStatUnc("_CMS_hzz2l2v_", (TString("_")+ch->first+TString("_ggH")).Data(),systpostfix.Data(), false );// attention
 	else if((it->second.shortName).find("qqH")!=std::string::npos)ch->second.shapes[histoName.Data()].makeStatUnc("_CMS_hzz2l2v_", (TString("_")+ch->first+TString("_qqH")).Data(),systpostfix.Data(), false );
         else ch->second.shapes[histoName.Data()].makeStatUnc("_CMS_hzz2l2v_", (TString("_")+ch->first+"_"+it->second.shortName).Data(),systpostfix.Data(), false );
-        TVirtualPad* pad = t1->cd(I); 
+        TVirtualPad* pad = t1->cd(I);
         pad->SetTopMargin(0.06); pad->SetRightMargin(0.03); pad->SetBottomMargin(0.07);  pad->SetLeftMargin(0.06);
-				//                 pad->SetLogy(true); 
+				//                 pad->SetLogy(true);
 
-        TH1* h = (TH1*)(ch->second.shapes[histoName.Data()].histo()->Clone((it->first+ch->first+"Nominal").c_str())); 
+        TH1* h = (TH1*)(ch->second.shapes[histoName.Data()].histo()->Clone((it->first+ch->first+"Nominal").c_str()));
         double yield = h->Integral();
         toDelete.push_back(h);
         mapYieldPerBin[""][ch->first] = yield;
@@ -1558,7 +1562,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
         //print histograms
         TH1* axis = (TH1*)h->Clone("axis");
-        axis->Reset();      
+        axis->Reset();
         axis->GetXaxis()->SetRangeUser(axis->GetXaxis()->GetXmin(), axis->GetXaxis()->GetXmax());
         axis->GetYaxis()->SetRangeUser(0.5, 1.5); //100% uncertainty
         if(it->second.shortName == "instrmet") axis->GetYaxis()->SetRangeUser(-5, 5);
@@ -1571,7 +1575,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         TPaveText* Label = new TPaveText(0.1,0.81,0.94,0.89, "NDC");
         Label->SetFillColor(0);  Label->SetFillStyle(0);  Label->SetLineColor(0); Label->SetBorderSize(0);  Label->SetTextAlign(31);
         TString LabelText = ch->second.channel+"  -  "+ch->second.bin;
-        LabelText.ReplaceAll("eq","="); LabelText.ReplaceAll("l=","#leq");LabelText.ReplaceAll("g=","#geq"); 
+        LabelText.ReplaceAll("eq","="); LabelText.ReplaceAll("l=","#leq");LabelText.ReplaceAll("g=","#geq");
         LabelText.ReplaceAll("_OS","OS "); LabelText.ReplaceAll("el","e"); LabelText.ReplaceAll("mu","#mu");  LabelText.ReplaceAll("ha","#tau_{had}");
         Label->AddText(LabelText);  Label->Draw();
 
@@ -1615,7 +1619,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           }
 
           if(mapYieldPerBin[systName.Data()].find(ch->first)==mapYieldPerBin[systName.Data()].end()){
-            mapYieldPerBin[systName.Data()][ch->first] = fabs( ScaleChange );                       
+            mapYieldPerBin[systName.Data()][ch->first] = fabs( ScaleChange );
             mapUncType[systName.Data()] = false;
           }else{
             mapYieldPerBin[systName.Data()][ch->first] = std::max( ScaleChange , mapYieldPerBin[systName.Data()][ch->first]);
@@ -1634,7 +1638,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         for(std::map<string, TH1*>::iterator var = ch->second.shapes[histoName.Data()].uncShape.begin(); var!=ch->second.shapes[histoName.Data()].uncShape.end(); var++){
           if(var->first=="")continue;
 
-          TH1* hvar = (TH1*)(var->second->Clone((it->first+ch->first+var->first).c_str())); 
+          TH1* hvar = (TH1*)(var->second->Clone((it->first+ch->first+var->first).c_str()));
           double varYield = hvar->Integral();
           hvar->Divide(h);
           toDelete.push_back(hvar);
@@ -1663,7 +1667,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           if(yield>0){
             if(mapYieldPerBin[systName.Data()].find(ch->first)==mapYieldPerBin[systName.Data()].end()){
               mapYieldPerBin[systName.Data()][ch->first] = fabs( 1 - (varYield/yield));
-              mapUncType[systName.Data()] = true;                        
+              mapUncType[systName.Data()] = true;
             }else{
               mapYieldPerBin[systName.Data()][ch->first] = std::max(fabs( 1 - (varYield/yield) ), mapYieldPerBin[systName.Data()][ch->first]);
             }
@@ -1673,14 +1677,14 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
             mapYieldInc[systName.Data()].second += yield;
           }
 
-          hvar->SetFillColor(0);                  
+          hvar->SetFillColor(0);
           hvar->SetLineStyle(1);
           hvar->SetLineColor(color);
           hvar->SetLineWidth(2);
-          hvar->Draw("HIST same");                   
+          hvar->Draw("HIST same");
         }
         //remove the stat uncertainty
-   			ch->second.shapes[histoName.Data()].removeStatUnc(); 
+   			ch->second.shapes[histoName.Data()].removeStatUnc();
       }
       //print legend
       c1->cd(0);
@@ -1701,7 +1705,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       c1->SaveAs(SaveName+"_Uncertainty_"+it->second.shortName+".png");
       c1->SaveAs(SaveName+"_Uncertainty_"+it->second.shortName+".pdf");
       c1->SaveAs(SaveName+"_Uncertainty_"+it->second.shortName+".C");
-      delete c1;             
+      delete c1;
 
       for(unsigned int i=0;i<toDelete.size();i++){delete toDelete[i];} //clear the objects
 
@@ -1709,7 +1713,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       //add inclusive uncertainty as a channel
       //
       for(auto systIt=mapYieldInc.begin(); systIt!=mapYieldInc.end(); systIt++){ mapYieldPerBin[systIt->first][" Inc"] = systIt->second.first/systIt->second.second;  }
-      //print uncertainty on yield            
+      //print uncertainty on yield
       //
       sprintf(txtBuffer, "\\multicolumn{%i}{'c'}{\\bf{%s}}\\\\ \n", I+1, it->first.c_str());  UncertaintyOnYield+= txtBuffer;
       sprintf(txtBuffer, "%10s & %25s", "Type", "Uncertainty");
@@ -1720,8 +1724,8 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         if(varIt->first == "")continue;
         sprintf(txtBuffer, "%10s & %25s", mapUncType[varIt->first.c_str()]?"shape":"scale", varIt->first.c_str());
         for(auto chIt=mapYieldPerBin[""].begin();chIt!=mapYieldPerBin[""].end();chIt++){
-          if(varIt->second.find(chIt->first)==varIt->second.end()){ sprintf(txtBuffer, "%s & %10s   "    , txtBuffer, "-" );                        
-          }else{                                                    sprintf(txtBuffer, "%s & %+10.3f\\%% ", txtBuffer,100.0 * varIt->second[chIt->first] ); 
+          if(varIt->second.find(chIt->first)==varIt->second.end()){ sprintf(txtBuffer, "%s & %10s   "    , txtBuffer, "-" );
+          }else{                                                    sprintf(txtBuffer, "%s & %+10.3f\\%% ", txtBuffer,100.0 * varIt->second[chIt->first] );
           }
         }sprintf(txtBuffer, "%s\\\\ \n", txtBuffer);   UncertaintyOnYield += txtBuffer;
       }sprintf(txtBuffer, "\\hline \n"); UncertaintyOnYield += txtBuffer;
@@ -1749,7 +1753,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       for(std::map<string, ChannelInfo_t>::iterator ch = it->second.channels.begin(); ch!=it->second.channels.end(); ch++){
         TString chbin = ch->first;
         if(ch->second.shapes.find(histoName)==(ch->second.shapes).end())continue;
-        ShapeData_t& shapeInfo = ch->second.shapes[histoName];      
+        ShapeData_t& shapeInfo = ch->second.shapes[histoName];
         TH1* h = shapeInfo.histo();
 
         TString proc = it->second.shortName.c_str();
@@ -1758,7 +1762,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           TH1*    hshape = unc->second;
           hshape->SetDirectory(0);
 
-          hshape = hshape->Rebin(hshape->GetXaxis()->GetNbins()); 
+          hshape = hshape->Rebin(hshape->GetXaxis()->GetNbins());
           //make sure to also count the underflow and overflow
           double bin  = hshape->GetBinContent(0) + hshape->GetBinContent(1) + hshape->GetBinContent(2);
           double bine = sqrt(hshape->GetBinError(0)*hshape->GetBinError(0) + hshape->GetBinError(1)*hshape->GetBinError(1) + hshape->GetBinError(2)*hshape->GetBinError(2));
@@ -1787,7 +1791,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         if(!fout->GetDirectory(chbin)){fout->mkdir(chbin);}fout->cd(chbin);
 
         if(ch->second.shapes.find(histoName)==(ch->second.shapes).end())continue;
-        ShapeData_t& shapeInfo = ch->second.shapes[histoName];      
+        ShapeData_t& shapeInfo = ch->second.shapes[histoName];
         TH1* h = shapeInfo.histo();
 				//                 shapeInfo.makeStatUnc("_CMS_hzz2l2v_", (TString("_")+ch->first+"_"+it->second.shortName).Data(),systpostfix.Data(), it->second.isSign );//add stat uncertainty to the uncertainty map;
         //shapeInfo.makeStatUnc("_CMS_hzz2l2v_", (TString("_")+ch->first+"_"+it->second.shortName).Data(),systpostfix.Data(), false );//add stat uncertainty to the uncertainty map;
@@ -1806,7 +1810,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
           if(syst==""){
             //central shape (for data call it data_obs)
-            hshape->SetName(proc); 
+            hshape->SetName(proc);
             if(it->first=="data"){
               hshape->Write("data_obs");
             }else{
@@ -1834,7 +1838,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           }
 
           if(runSystematics && syst!=""){
-            TString systName(syst); 
+            TString systName(syst);
             systName.ReplaceAll("Up",""); systName.ReplaceAll("Down","");//  systName.ReplaceAll("_","");
             if(systName.First("_")==0)systName.Remove(0,1);
 
@@ -1877,23 +1881,56 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 		//            double QCDScaleK2ggH2 [] = { 1.20, 1.17, 1.20, 1.21, 1.20, 1.20, 1.17, 1.19, 1.19, 1.19, 1.19, 1.19, 1.19};
 
 
-    //13TeV values  
-    double QCDScaleMass        [] = {  200,   300,   400,   600,   800,  1000,  1500,  2000,  2500,  3000,  9999};
-    double QCDScaleggHeq0jets  [] = {2.042, 1.416, 1.283, 1.335, 1.352, 1.425, 1.542, 1.627, 1.659, 1.638, 1.638};
-    double QCDScaleggHgeq1jets [] = {1.305, 1.219, 1.181, 1.168, 1.172, 1.183, 1.201, 1.219, 1.220, 1.219, 1.219};
-    double QCDScaleggHvbf      [] = {1.217, 1.282, 1.200, 1.215, 1.178, 1.195, 1.201, 1.226, 1.232, 1.199, 1.199};
+    //13TeV values
+    double QCDScaleMass                    [] = {  200,   300,   400,   600,   800,  1000,  1500,  2000,  2500,  3000,  9999};
+    double QCDScaleggHeq0jets_up_signal    [] = {0.883, 0.971, 0.966, 0.971, 0.968, 0.966, 0.976, 0.983, 0.992, 0.998, 0.998};
+    double QCDScaleggHgeq1jets_up_signal   [] = {1.054, 1.031, 1.044, 1.029, 1.031, 1.028, 1.018, 1.012, 1.005, 1.000, 1.000};
+    double QCDScaleggHvbf_up_signal        [] = {0.966, 1.107, 0.900, 1.095, 1.060, 1.053, 1.012, 0.999, 1.042, 1.037, 1.037};
+    double QCDScaleggHeq0jets_down_signal  [] = {1.097, 1.013, 1.001, 1.003, 1.003, 0.998, 0.975, 0.970, 0.968, 0.984, 0.984};
+    double QCDScaleggHgeq1jets_down_signal [] = {0.955, 0.986, 1.021, 0.997, 0.997, 1.002, 1.018, 1.021, 1.021, 1.010, 1.010};
+    double QCDScaleggHvbf_down_signal      [] = {1.032, 0.953, 0.900, 0.974, 1.021, 1.009, 1.011, 0.977, 1.045, 1.147, 1.147};
+    double QCDScaleVBFeq0jets_up_signal    [] = {0.933, 1.101, 1.033, 1.029, 1.005, 1.004, 1.032, 0.966, 0.969, 0.941, 0.941};
+    double QCDScaleVBFgeq1jets_up_signal   [] = {0.996, 0.981, 1.007, 0.994, 1.001, 1.001, 1.008, 1.010, 0.990, 1.021, 1.021};
+    double QCDScaleVBFvbf_up_signal        [] = {1.020, 1.022, 0.976, 0.997, 0.995, 0.985, 0.977, 0.986, 1.020, 0.978, 0.978};
+    double QCDScaleVBFeq0jets_down_signal  [] = {0.485, 1.081, 0.934, 0.957, 0.908, 1.024, 1.003, 1.059, 1.026, 1.001, 1.001};
+    double QCDScaleVBFgeq1jets_down_signal [] = {1.029, 0.985, 0.987, 1.008, 1.018, 1.006, 0.999, 1.016, 1.008, 1.000, 1.000};
+    double QCDScaleVBFvbf_down_signal      [] = {0.945, 0.956, 1.032, 0.990, 0.974, 0.988, 0.999, 0.939, 0.968, 0.998, 0.998};
+    //double QCDScaleggZZeq0jets              [] = {2.042, 1.416, 1.283, 1.335, 1.352, 1.425, 1.542, 1.627, 1.659, 1.638, 1.638};
+    double QCDScaleggZZeq0jets             [] = {1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100};
+    //double QCDScaleggZZgeq1jets            [] = {1.305, 1.219, 1.181, 1.168, 1.172, 1.183, 1.201, 1.219, 1.220, 1.219, 1.219};
+    double QCDScaleggZZgeq1jets            [] = {1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100};
+    //double QCDScaleggZZvbf                 [] = {1.217, 1.282, 1.200, 1.215, 1.178, 1.195, 1.201, 1.226, 1.232, 1.199, 1.199};
+    double QCDScaleggZZvbf                 [] = {1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100, 1.100};
 
     double UEPSf0 []         = {0.952, 0.955, 0.958, 0.964, 0.966, 0.954, 0.946, 0.931, 0.920, 0.920, 0.920, 0.920, 0.920};
     double UEPSf1 []         = {1.055, 1.058, 1.061, 1.068, 1.078, 1.092, 1.102, 1.117, 1.121, 1.121, 1.121, 1.121, 1.121};
-    double UEPSf2 []         = {1.059, 0.990, 0.942, 0.889, 0.856, 0.864, 0.868, 0.861, 0.872, 0.872, 0.872, 0.872, 0.872}; 
+    double UEPSf2 []         = {1.059, 0.990, 0.942, 0.889, 0.856, 0.864, 0.868, 0.861, 0.872, 0.872, 0.872, 0.872, 0.872};
 
-    TGraph* TG_QCDScaleggHeq0jets  = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,  QCDScaleggHeq0jets);
-    TGraph* TG_QCDScaleggHgeq1jets = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, QCDScaleggHgeq1jets);
-    TGraph* TG_QCDScaleggHvbf      = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,      QCDScaleggHvbf);
+    TGraph* TG_QCDScaleggHeq0jets_up_signal  = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,  QCDScaleggHeq0jets_up_signal);
+    TGraph* TG_QCDScaleggHgeq1jets_up_signal = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, QCDScaleggHgeq1jets_up_signal);
+    TGraph* TG_QCDScaleggHvbf_up_signal      = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,      QCDScaleggHvbf_up_signal);
+    TGraph* TG_QCDScaleggHeq0jets_down_signal  = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,  QCDScaleggHeq0jets_down_signal);
+    TGraph* TG_QCDScaleggHgeq1jets_down_signal = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, QCDScaleggHgeq1jets_down_signal);
+    TGraph* TG_QCDScaleggHvbf_down_signal      = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,      QCDScaleggHvbf_down_signal);
+    TGraph* TG_QCDScaleVBFeq0jets_up_signal  = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,  QCDScaleVBFeq0jets_up_signal);
+    TGraph* TG_QCDScaleVBFgeq1jets_up_signal = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, QCDScaleVBFgeq1jets_up_signal);
+    TGraph* TG_QCDScaleVBFvbf_up_signal      = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,      QCDScaleVBFvbf_up_signal);
+    TGraph* TG_QCDScaleVBFeq0jets_down_signal  = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,  QCDScaleVBFeq0jets_down_signal);
+    TGraph* TG_QCDScaleVBFgeq1jets_down_signal = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, QCDScaleVBFgeq1jets_down_signal);
+    TGraph* TG_QCDScaleVBFvbf_down_signal      = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,      QCDScaleVBFvbf_down_signal);
+    TGraph* TG_QCDScaleggZZeq0jets  = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,  QCDScaleggZZeq0jets);
+    TGraph* TG_QCDScaleggZZgeq1jets = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, QCDScaleggZZgeq1jets);
+    TGraph* TG_QCDScaleggZZvbf      = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass,      QCDScaleggZZvbf);
     TGraph* TG_UEPSf0         = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, UEPSf0);
     TGraph* TG_UEPSf1         = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, UEPSf1);
     TGraph* TG_UEPSf2         = new TGraph(sizeof(QCDScaleMass)/sizeof(double), QCDScaleMass, UEPSf2);
 
+    double integral_sonl_ggH[3] = {0,0,0};
+    double integral_bonl_ggH[3] = {0,0,0};
+    double integral_sand_ggH[3] = {0,0,0};
+    double integral_sonl_VBF[3] = {0,0,0};
+    double integral_bonl_VBF[3] = {0,0,0};
+    double integral_sand_VBF[3] = {0,0,0};
     for(unsigned int p=0;p<sorted_procs.size();p++){
       string procName = sorted_procs[p];
       std::map<string, ProcessInfo_t>::iterator it=procs.find(procName);
@@ -1901,7 +1938,35 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       for(std::map<string, ChannelInfo_t>::iterator ch = it->second.channels.begin(); ch!=it->second.channels.end(); ch++){
         TString chbin = ch->first;
         if(ch->second.shapes.find(histoName)==(ch->second.shapes).end())continue;
-        ShapeData_t& shapeInfo = ch->second.shapes[histoName];      
+        ShapeData_t& shapeInfo = ch->second.shapes[histoName];
+        if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("eq0jet" )){integral_sonl_ggH[0] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("eq1jet" )){integral_sonl_ggH[1] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("vbf" )){integral_sonl_ggH[2] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("eq0jet" )){integral_bonl_ggH[0] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("eq1jet" )){integral_bonl_ggH[1] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("vbf" )){integral_bonl_ggH[2] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("eq0jet" )){integral_sand_ggH[0] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("eq1jet" )){integral_sand_ggH[1] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("vbf" )){integral_sand_ggH[2] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("eq0jet" )){integral_sonl_VBF[0] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("eq1jet" )){integral_sonl_VBF[1] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("vbf" )){integral_sonl_VBF[2] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_bonl")!=string::npos && chbin.Contains("eq0jet" )){integral_bonl_VBF[0] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_bonl")!=string::npos && chbin.Contains("eq1jet" )){integral_bonl_VBF[1] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_bonl")!=string::npos && chbin.Contains("vbf" )){integral_bonl_VBF[2] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_sand")!=string::npos && chbin.Contains("eq0jet" )){integral_sand_VBF[0] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_sand")!=string::npos && chbin.Contains("eq1jet" )){integral_sand_VBF[1] = shapeInfo.histo()->Integral();}
+        if(it->second.shortName.find("qqH_sand")!=string::npos && chbin.Contains("vbf" )){integral_sand_VBF[2] = shapeInfo.histo()->Integral();}
+      }
+    }
+    for(unsigned int p=0;p<sorted_procs.size();p++){
+      string procName = sorted_procs[p];
+      std::map<string, ProcessInfo_t>::iterator it=procs.find(procName);
+      if(it==procs.end() || it->first=="total")continue;
+      for(std::map<string, ChannelInfo_t>::iterator ch = it->second.channels.begin(); ch!=it->second.channels.end(); ch++){
+        TString chbin = ch->first;
+        if(ch->second.shapes.find(histoName)==(ch->second.shapes).end())continue;
+        ShapeData_t& shapeInfo = ch->second.shapes[histoName];
         double integral = shapeInfo.histo()->Integral();
 
         //lumi
@@ -1917,10 +1982,75 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
         //uncertainties to be applied only in higgs analyses
         if(mass>0){
+          //kFactor ggZZ
+          if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["kfactor_ggZZ"]    = integral*(1.1-1);}
+          if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["kfactor_ggZZ"] = integral*(1.1-1);}
+          if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale["kfactor_ggZZ"] = integral*(1.1-1);}
+          double kFactor_ggZZ_sand = integral_sonl_ggH[0]/integral_sand_ggH[0] + integral_bonl_ggH[0]/integral_sand_ggH[0] * 1.1 + (integral_sand_ggH[0]-integral_bonl_ggH[0]-integral_sonl_ggH[0])/integral_sand_ggH[0] * sqrt(1.1); //nothing on signal, factor on background, sqrt(factor) on interference.
+          if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["kfactor_ggZZ"]    = integral*(kFactor_ggZZ_sand-1);}
+          kFactor_ggZZ_sand = integral_sonl_ggH[1]/integral_sand_ggH[1] + integral_bonl_ggH[1]/integral_sand_ggH[1] * 1.1 + (integral_sand_ggH[1]-integral_bonl_ggH[1]-integral_sonl_ggH[1])/integral_sand_ggH[1] * sqrt(1.1);
+          if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["kfactor_ggZZ"] = integral*(kFactor_ggZZ_sand-1);}
+          kFactor_ggZZ_sand = integral_sonl_ggH[2]/integral_sand_ggH[2] + integral_bonl_ggH[2]/integral_sand_ggH[2] * 1.1 + (integral_sand_ggH[2]-integral_bonl_ggH[2]-integral_sonl_ggH[2])/integral_sand_ggH[2] * sqrt(1.1);
+          if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale["kfactor_ggZZ"] = integral*(kFactor_ggZZ_sand-1);}
+
+          //QCD scale for ggZZ continuum
+          if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["QCDscale_ggZZ"]    = integral*(TG_QCDScaleggZZeq0jets->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["QCDscale_ggZZ"] = integral*(TG_QCDScaleggZZgeq1jets->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_bonl")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale["QCDscale_ggZZ"] = integral*(TG_QCDScaleggZZvbf->Eval(mass,NULL,"S")-1);}
+          double QCDscale_ggZZ_sand = integral_sonl_ggH[0]/integral_sand_ggH[0] + integral_bonl_ggH[0]/integral_sand_ggH[0] * TG_QCDScaleggZZeq0jets->Eval(mass,NULL,"S") + (integral_sand_ggH[0]-integral_bonl_ggH[0]-integral_sonl_ggH[0])/integral_sand_ggH[0] * sqrt(TG_QCDScaleggZZeq0jets->Eval(mass,NULL,"S")); //nothing on signal, factor on background, sqrt(factor) on interference.
+          if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["QCDscale_ggZZ"]    = integral*(QCDscale_ggZZ_sand-1);}
+          QCDscale_ggZZ_sand = integral_sonl_ggH[1]/integral_sand_ggH[1] + integral_bonl_ggH[1]/integral_sand_ggH[1] * TG_QCDScaleggZZgeq1jets->Eval(mass,NULL,"S") + (integral_sand_ggH[1]-integral_bonl_ggH[1]-integral_sonl_ggH[1])/integral_sand_ggH[1] * sqrt(TG_QCDScaleggZZgeq1jets->Eval(mass,NULL,"S"));
+          if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["QCDscale_ggZZ"] = integral*(QCDscale_ggZZ_sand-1);}
+          QCDscale_ggZZ_sand = integral_sonl_ggH[2]/integral_sand_ggH[2] + integral_bonl_ggH[2]/integral_sand_ggH[2] * TG_QCDScaleggZZvbf->Eval(mass,NULL,"S") + (integral_sand_ggH[2]-integral_bonl_ggH[2]-integral_sonl_ggH[2])/integral_sand_ggH[2] * sqrt(TG_QCDScaleggZZvbf->Eval(mass,NULL,"S"));
+          if(it->second.shortName.find("ggH_sand")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale["QCDscale_ggZZ"] = integral*(QCDscale_ggZZ_sand-1);}
+
           //bin migration at th level
-          if(it->second.shortName.find("ggH")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["QCDscale_ggH"]    = integral*(TG_QCDScaleggHeq0jets->Eval(mass,NULL,"S")-1);}
-          if(it->second.shortName.find("ggH")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["QCDscale_ggH"] = integral*(TG_QCDScaleggHgeq1jets->Eval(mass,NULL,"S")-1);} 
-          if(it->second.shortName.find("ggH")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale["QCDscale_ggH"] = integral*(TG_QCDScaleggHvbf->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("sonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["QCDscale_signal"]    = integral*(TG_QCDScaleggHeq0jets_up_signal->Eval(mass,NULL,"S")-1);}//Just to put something
+          if(it->second.shortName.find("sonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["QCDscale_signal"]    = integral*(TG_QCDScaleggHgeq1jets_up_signal->Eval(mass,NULL,"S")-1);}//Just to put something
+          if(it->second.shortName.find("sonl")!=string::npos && chbin.Contains("vbf" )){shapeInfo.uncScale["QCDscale_signal"]    = integral*(TG_QCDScaleggHvbf_up_signal->Eval(mass,NULL,"S")-1);}//Just to put something
+          if(it->second.shortName.find("sand")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale["QCDscale_signal"]    = integral*0.1;}//Just to put something
+          if(it->second.shortName.find("sand")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale["QCDscale_signal"]    = integral*0.1;}//Just to put something
+          if(it->second.shortName.find("sand")!=string::npos && chbin.Contains("vbf" )){shapeInfo.uncScale["QCDscale_signal"]    = integral*0.1;}//Just to put something
+          if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(TG_QCDScaleVBFeq0jets_down_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale_down["QCDscale_signal"] = integral*(TG_QCDScaleVBFgeq1jets_down_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale_down["QCDscale_signal"] = integral*(TG_QCDScaleVBFvbf_down_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(TG_QCDScaleVBFeq0jets_up_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale_up["QCDscale_signal"] = integral*(TG_QCDScaleVBFgeq1jets_up_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("qqH_sonl")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale_up["QCDscale_signal"] = integral*(TG_QCDScaleVBFvbf_up_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(TG_QCDScaleggHeq0jets_down_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale_down["QCDscale_signal"] = integral*(TG_QCDScaleggHgeq1jets_down_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale_down["QCDscale_signal"] = integral*(TG_QCDScaleggHvbf_down_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("eq0jet" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(TG_QCDScaleggHeq0jets_up_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("eq1jet" )){shapeInfo.uncScale_up["QCDscale_signal"] = integral*(TG_QCDScaleggHgeq1jets_up_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sonl")!=string::npos && chbin.Contains("vbf"    )){shapeInfo.uncScale_up["QCDscale_signal"] = integral*(TG_QCDScaleggHvbf_up_signal->Eval(mass,NULL,"S")-1);}
+          if(it->second.shortName.find("ggH_sand")!=string::npos){
+            double QCDscale_sand_up = integral_bonl_ggH[0]/integral_sand_ggH[0] + integral_sonl_ggH[0]/integral_sand_ggH[0] * TG_QCDScaleggHeq0jets_up_signal->Eval(mass,NULL,"S") + (integral_sand_ggH[0]-integral_bonl_ggH[0]-integral_sonl_ggH[0])/integral_sand_ggH[0] * sqrt(TG_QCDScaleggHeq0jets_up_signal->Eval(mass,NULL,"S")); //nothing on background, factor on signal, sqrt(factor) on interference.
+            double QCDscale_sand_down = integral_bonl_ggH[0]/integral_sand_ggH[0] + integral_sonl_ggH[0]/integral_sand_ggH[0] * TG_QCDScaleggHeq0jets_down_signal->Eval(mass,NULL,"S") + (integral_sand_ggH[0]-integral_bonl_ggH[0]-integral_sonl_ggH[0])/integral_sand_ggH[0] * sqrt(TG_QCDScaleggHeq0jets_down_signal->Eval(mass,NULL,"S")); //nothing on background, factor on signal, sqrt(factor) on interference.
+            if(chbin.Contains("eq0jet" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(QCDscale_sand_down-1);}
+            if(chbin.Contains("eq0jet" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(QCDscale_sand_up-1);}
+            QCDscale_sand_up = integral_bonl_ggH[1]/integral_sand_ggH[1] + integral_sonl_ggH[1]/integral_sand_ggH[1] * TG_QCDScaleggHgeq1jets_up_signal->Eval(mass,NULL,"S") + (integral_sand_ggH[1]-integral_bonl_ggH[1]-integral_sonl_ggH[1])/integral_sand_ggH[1] * sqrt(TG_QCDScaleggHgeq1jets_up_signal->Eval(mass,NULL,"S"));
+            QCDscale_sand_down = integral_bonl_ggH[1]/integral_sand_ggH[1] + integral_sonl_ggH[1]/integral_sand_ggH[1] * TG_QCDScaleggHgeq1jets_down_signal->Eval(mass,NULL,"S") + (integral_sand_ggH[1]-integral_bonl_ggH[1]-integral_sonl_ggH[1])/integral_sand_ggH[1] * sqrt(TG_QCDScaleggHgeq1jets_down_signal->Eval(mass,NULL,"S"));
+            if(chbin.Contains("eq1jet" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(QCDscale_sand_down-1);}
+            if(chbin.Contains("eq1jet" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(QCDscale_sand_up-1);}
+            QCDscale_sand_up = integral_bonl_ggH[2]/integral_sand_ggH[2] + integral_sonl_ggH[2]/integral_sand_ggH[2] * TG_QCDScaleggHvbf_up_signal->Eval(mass,NULL,"S") + (integral_sand_ggH[2]-integral_bonl_ggH[2]-integral_sonl_ggH[2])/integral_sand_ggH[2] * sqrt(TG_QCDScaleggHvbf_up_signal->Eval(mass,NULL,"S"));
+            QCDscale_sand_down = integral_bonl_ggH[2]/integral_sand_ggH[2] + integral_sonl_ggH[2]/integral_sand_ggH[2] * TG_QCDScaleggHvbf_down_signal->Eval(mass,NULL,"S") + (integral_sand_ggH[2]-integral_bonl_ggH[2]-integral_sonl_ggH[2])/integral_sand_ggH[2] * sqrt(TG_QCDScaleggHvbf_down_signal->Eval(mass,NULL,"S"));
+            if(chbin.Contains("vbf" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(QCDscale_sand_down-1);}
+            if(chbin.Contains("vbf" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(QCDscale_sand_up-1);}
+          }
+          if(it->second.shortName.find("qqH_sand")!=string::npos){
+            double QCDscale_sand_up = integral_bonl_VBF[0]/integral_sand_VBF[0] + integral_sonl_VBF[0]/integral_sand_VBF[0] * TG_QCDScaleVBFeq0jets_up_signal->Eval(mass,NULL,"S") + (integral_sand_VBF[0]-integral_bonl_VBF[0]-integral_sonl_VBF[0])/integral_sand_VBF[0] * sqrt(TG_QCDScaleVBFeq0jets_up_signal->Eval(mass,NULL,"S")); //nothing on background, factor on signal, sqrt(factor) on interference.
+            double QCDscale_sand_down = integral_bonl_VBF[0]/integral_sand_VBF[0] + integral_sonl_VBF[0]/integral_sand_VBF[0] * TG_QCDScaleVBFeq0jets_down_signal->Eval(mass,NULL,"S") + (integral_sand_VBF[0]-integral_bonl_VBF[0]-integral_sonl_VBF[0])/integral_sand_VBF[0] * sqrt(TG_QCDScaleVBFeq0jets_down_signal->Eval(mass,NULL,"S")); //nothing on background, factor on signal, sqrt(factor) on interference.
+            if(chbin.Contains("eq0jet" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(QCDscale_sand_down-1);}
+            if(chbin.Contains("eq0jet" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(QCDscale_sand_up-1);}
+            QCDscale_sand_up = integral_bonl_VBF[1]/integral_sand_VBF[1] + integral_sonl_VBF[1]/integral_sand_VBF[1] * TG_QCDScaleVBFgeq1jets_up_signal->Eval(mass,NULL,"S") + (integral_sand_VBF[1]-integral_bonl_VBF[1]-integral_sonl_VBF[1])/integral_sand_VBF[1] * sqrt(TG_QCDScaleVBFgeq1jets_up_signal->Eval(mass,NULL,"S"));
+            QCDscale_sand_down = integral_bonl_VBF[1]/integral_sand_VBF[1] + integral_sonl_VBF[1]/integral_sand_VBF[1] * TG_QCDScaleVBFgeq1jets_down_signal->Eval(mass,NULL,"S") + (integral_sand_VBF[1]-integral_bonl_VBF[1]-integral_sonl_VBF[1])/integral_sand_VBF[1] * sqrt(TG_QCDScaleVBFgeq1jets_down_signal->Eval(mass,NULL,"S"));
+            if(chbin.Contains("eq1jet" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(QCDscale_sand_down-1);}
+            if(chbin.Contains("eq1jet" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(QCDscale_sand_up-1);}
+            QCDscale_sand_up = integral_bonl_VBF[2]/integral_sand_VBF[2] + integral_sonl_VBF[2]/integral_sand_VBF[2] * TG_QCDScaleVBFvbf_up_signal->Eval(mass,NULL,"S") + (integral_sand_VBF[2]-integral_bonl_VBF[2]-integral_sonl_VBF[2])/integral_sand_VBF[2] * sqrt(TG_QCDScaleVBFvbf_up_signal->Eval(mass,NULL,"S"));
+            QCDscale_sand_down = integral_bonl_VBF[2]/integral_sand_VBF[2] + integral_sonl_VBF[2]/integral_sand_VBF[2] * TG_QCDScaleVBFvbf_down_signal->Eval(mass,NULL,"S") + (integral_sand_VBF[2]-integral_bonl_VBF[2]-integral_sonl_VBF[2])/integral_sand_VBF[2] * sqrt(TG_QCDScaleVBFvbf_down_signal->Eval(mass,NULL,"S"));
+            if(chbin.Contains("vbf" )){shapeInfo.uncScale_down["QCDscale_signal"]    = integral*(QCDscale_sand_down-1);}
+            if(chbin.Contains("vbf" )){shapeInfo.uncScale_up["QCDscale_signal"]    = integral*(QCDscale_sand_up-1);}
+          }
 
         }//end of uncertainties to be applied only in higgs analyses
 
@@ -1938,7 +2068,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
 
   //
-  // produce the datacards 
+  // produce the datacards
   //
   void AllInfo_t::buildDataCards(string histoName, TString url)
   {
@@ -1957,7 +2087,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         TString chbin = ch->first;
         if(ch->second.shapes.find(histoName)==(ch->second.shapes).end())continue;
         allChannels[ch->first] = true;
-        ShapeData_t& shapeInfo = ch->second.shapes[histoName];      
+        ShapeData_t& shapeInfo = ch->second.shapes[histoName];
         for(std::map<string, double>::iterator unc=shapeInfo.uncScale.begin();unc!=shapeInfo.uncScale.end();unc++){
           if(unc->first=="")continue;
           allSysts[unc->first] = unc->second==-1?true:false;
@@ -1972,7 +2102,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     TString combinedcard = "";
 
     for(std::map<string, bool>::iterator C=allChannels.begin(); C!=allChannels.end();C++){
-      TString dcName=url;              
+      TString dcName=url;
       dcName.ReplaceAll(".root","_"+TString(C->first.c_str())+".dat");
 
       combinedcard += (C->first+"=").c_str()+dcName+" ";
@@ -2009,14 +2139,21 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         if(mass==125 && U->first=="CMS_hzz2l2v_lshape")continue;//skip lineshape uncertainty for 125GeV Higgs
 
         char line[2048];
-        sprintf(line,"%-45s %-10s ", U->first.c_str(), U->second?"shapeN2":"lnN");
+        TString nameBin = U->first.c_str();
+        string shapePdf = (((nameBin.Contains("instrmet")))?"shape2":"shapeN2");
+        //string shapePdf = (((nameBin.Contains("instrmet")||nameBin.Contains("ggH_")))?"shape2":"shapeN2");
+        string thePdf="lnN";
+        if (U->second) thePdf=shapePdf;
+        sprintf(line,"%-45s %-10s ", U->first.c_str(), thePdf.c_str());
         bool isNonNull = false;
         for(unsigned int j=0; j<clean_procs.size(); j++){
           ShapeData_t& shapeInfo = procs[clean_procs[j]].channels[C->first].shapes[histoName];
           double integral = shapeInfo.histo()->Integral();
-          if(shapeInfo.uncScale.find(U->first)!=shapeInfo.uncScale.end()){   isNonNull = true;   
+          if(shapeInfo.uncScale.find(U->first)!=shapeInfo.uncScale.end()){   isNonNull = true;
             if(U->second)                                                   sprintf(line,"%s%8s ",line,"       1");
+            else if(U->first.find("QCDscale_signal")!=string::npos) sprintf(line,"%s%8f/%8f ",line,1+(shapeInfo.uncScale_down[U->first]/integral),1+(shapeInfo.uncScale_up[U->first]/integral));
             else if(integral>0)                                             sprintf(line,"%s%8f ",line,1+(shapeInfo.uncScale[U->first]/integral));
+            //else if(integral>0)                                             sprintf(line,"%s%8f/%8f ",line,1+(shapeInfo.uncScale[U->first]/integral),1+(shapeInfo.uncScale[U->first]/integral));
             else                                                            sprintf(line,"%s%8f ",line,1+(shapeInfo.uncScale[U->first]));
           }else{                                                             sprintf(line,"%s%8s ",line,"       -");        }
         }
@@ -2031,7 +2168,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     fprintf(pFile,"%s;\n",(TString("combineCards.py ") + combinedcard + " > " + "card_combined.dat").Data());
     fprintf(pFile,"%s;\n",(TString("combineCards.py ") + eecard       + " > " + "card_ee.dat").Data());
     fprintf(pFile,"%s;\n",(TString("combineCards.py ") + mumucard     + " > " + "card_mumu.dat").Data());
-    fclose(pFile);         
+    fclose(pFile);
 
   }
 
@@ -2052,14 +2189,15 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       TString procCtr(""); procCtr+=i;
       TString proc=Process[i].getString("tag", "noTagFound");
 
-      string dirName = proc.Data(); 
+      string dirName = proc.Data();
 	    //std::<TString> keys = Process[i].getString("keys", "noKeysFound");
       if(Process[i].isTagFromKeyword(matchingKeyword, "mctruthmode") ) { char buf[255]; sprintf(buf,"_filt%d",(int)Process[i].getIntFromKeyword(matchingKeyword, "mctruthmode", 0)); dirName += buf; }
       string procSuffix = Process[i].getStringFromKeyword(matchingKeyword, "suffix", "");
       if(procSuffix!=""){dirName += "_" + procSuffix;}
-      while(dirName.find("/")!=std::string::npos)dirName.replace(dirName.find("/"),1,"-");         
+      while(dirName.find("/")!=std::string::npos)dirName.replace(dirName.find("/"),1,"-");
 
-      TDirectory *pdir = (TDirectory *)inF->Get(dirName.c_str());         
+      TDirectory *pdir = (TDirectory *)inF->Get(dirName.c_str());
+      //cout << "inside dir=" <<     dirName.c_str() << endl;
       if(!pdir){printf("Directory (%s) for proc=%s is not in the file!\n", dirName.c_str(), proc.Data()); continue;}
 
       bool isData = Process[i].getBool("isdata", false);
@@ -2095,7 +2233,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
         //skip signal sample not needed
         if(massL!=-1 && massR!=-1){
-          if(procMass!=massL && procMass!=massR)continue; 
+          if(procMass!=massL && procMass!=massR)continue;
         }else{
           if(procMass!=mass)continue;
         }
@@ -2127,7 +2265,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       shortName.ReplaceAll("#bar{t}","tbar");
       shortName.ReplaceAll("z-#gamma^{*}+jets#rightarrow ll","dy");
       shortName.ReplaceAll("#rightarrow","");
-      shortName.ReplaceAll("(",""); shortName.ReplaceAll(")","");    shortName.ReplaceAll("+","");    shortName.ReplaceAll(" ","");   shortName.ReplaceAll("/","");  shortName.ReplaceAll("#",""); 
+      shortName.ReplaceAll("(",""); shortName.ReplaceAll(")","");    shortName.ReplaceAll("+","");    shortName.ReplaceAll(" ","");   shortName.ReplaceAll("/","");  shortName.ReplaceAll("#","");
       shortName.ReplaceAll("=",""); shortName.ReplaceAll(".","");    shortName.ReplaceAll("^","");    shortName.ReplaceAll("}","");   shortName.ReplaceAll("{","");  shortName.ReplaceAll(",","");
       shortName.ReplaceAll("ggh", "ggH");
       shortName.ReplaceAll("qqh", "qqH");
@@ -2136,7 +2274,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
       if(procs.find(proc.Data())==procs.end()){sorted_procs.push_back(proc.Data());}
       ProcessInfo_t& procInfo = procs[proc.Data()];
-      procInfo.jsonObj = Process[i]; 
+      procInfo.jsonObj = Process[i];
       procInfo.isData = isData;
       procInfo.isSign = isSignal;
       procInfo.isBckg = !procInfo.isData && !procInfo.isSign;
@@ -2147,7 +2285,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         procInfo.xsec = procInfo.jsonObj["data"].daughters()[0].getDouble("xsec", 1);
         if(procInfo.jsonObj["data"].daughters()[0].isTag("br")){
           std::vector<JSONWrapper::Object> BRs = procInfo.jsonObj["data"].daughters()[0]["br"].daughters();
-          double totalBR=1.0; for(size_t ipbr=0; ipbr<BRs.size(); ipbr++){totalBR*=BRs[ipbr].toDouble();}   
+          double totalBR=1.0; for(size_t ipbr=0; ipbr<BRs.size(); ipbr++){totalBR*=BRs[ipbr].toDouble();}
           procInfo.br = totalBR;
         }
       }
@@ -2167,13 +2305,13 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         ShapeData_t& shapeInfo = channelInfo.shapes[shapeName.Data()];
 
         //printf("%s SYST SIZE=%i\n", (ch+"_"+shapeName).Data(), syst->GetNbinsX() );
-        for(int ivar = 1; ivar<=syst->GetNbinsX();ivar++){                
+        for(int ivar = 1; ivar<=syst->GetNbinsX();ivar++){
           TH1D* hshape   = NULL;
           TString varName   = syst->GetXaxis()->GetBinLabel(ivar);
           TString histoName = ch+"_"+shapeName+(isSignal?signalSufix:"")+varName ;
           if(shapeName==histo && histoVBF!="" && ch.Contains("vbf"))histoName = ch+"_"+histoVBF+(isSignal?signalSufix:"")+varName ;
-          //if(isSignal && ivar==1)printf("Syst %i = %s\n", ivar, varName.Data()); 
-
+          //if(isSignal && ivar==1)printf("Syst %i = %s\n", ivar, varName.Data());
+          //cout << "will try to get " << histoName << endl;
           TH2* hshape2D = (TH2*)pdir->Get(histoName );
           if(!hshape2D){
             if(shapeName==histo && histoVBF!="" && ch.Contains("vbf")){   hshape2D = (TH2*)pdir->Get(TString("all_")+histoVBF+(isSignal?signalSufix:"")+varName);
@@ -2231,10 +2369,10 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           if(varName==""){//does nothing
           }else if(varName.BeginsWith("_jes")){varName.ReplaceAll("_jes","_CMS_scale_j");
           }else if(varName.BeginsWith("_jer")){varName.ReplaceAll("_jer","_CMS_res_j"); // continue;//skip res for now
-          }else if(varName.BeginsWith("_les")){ 
+          }else if(varName.BeginsWith("_les")){
             if(ch.Contains("ee"  ))varName.ReplaceAll("_les","_CMS_scale_e");
             if(ch.Contains("mumu"))varName.ReplaceAll("_les","_CMS_scale_m");
-          }else if(varName.BeginsWith("_btag"  )){varName.ReplaceAll("_btag","_CMS_eff_b"); 
+          }else if(varName.BeginsWith("_btag"  )){varName.ReplaceAll("_btag","_CMS_eff_b");
           }else if(varName.BeginsWith("_pu"    )){varName.ReplaceAll("_pu", "_CMS_hzz2l2v_pu");
           }else if(varName.BeginsWith("_ren"   )){continue;   //already accounted for in QCD scales
           }else if(varName.BeginsWith("_fact"  )){continue; //skip this one
@@ -2266,12 +2404,12 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     char LyieldMC [1024] = "";
 
     //check that the data proc exist
-    std::map<string, ProcessInfo_t>::iterator dataProcIt=procs.find("data");             
+    std::map<string, ProcessInfo_t>::iterator dataProcIt=procs.find("data");
     if(dataProcIt==procs.end()){printf("The process 'data' was not found... can not do non-resonnant background prediction\n"); return;}
 
     //create a new proc for NRB backgrounds
     TString NRBProcName = "Top/W/WW";
-    for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==NRBProcName.Data()){sorted_procs.erase(p);break;}}           
+    for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==NRBProcName.Data()){sorted_procs.erase(p);break;}}
     sorted_procs.push_back(NRBProcName.Data());
     procs[NRBProcName.Data()] = ProcessInfo_t(); //reset
     ProcessInfo_t& procInfo_NRB = procs[NRBProcName.Data()];
@@ -2300,9 +2438,9 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     for(std::map<string, ChannelInfo_t>::iterator chData = dataProcIt->second.channels.begin(); chData!=dataProcIt->second.channels.end(); chData++){
       if(std::find(selCh.begin(), selCh.end(), chData->second.channel)==selCh.end())continue;
 
-      std::map<string, ChannelInfo_t>::iterator chNRB  = procInfo_NRB.channels.find(chData->first);  
+      std::map<string, ChannelInfo_t>::iterator chNRB  = procInfo_NRB.channels.find(chData->first);
       if(chNRB==procInfo_NRB.channels.end()){  //this channel does not exist, create it
-        procInfo_NRB.channels[chData->first] = ChannelInfo_t();     
+        procInfo_NRB.channels[chData->first] = ChannelInfo_t();
         chNRB                = procInfo_NRB.channels.find(chData->first);
         chNRB->second.bin     = chData->second.bin;
         chNRB->second.channel = chData->second.channel;
@@ -2320,7 +2458,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 		 	int bin = 6; //bin = 5 => AllSide Region; bin = 6 => UpSide Region
       if(hCtrl_SB->GetBinContent(bin)>0){
         alpha     = hChan_SB->GetBinContent(bin) / hCtrl_SB->GetBinContent(bin);
-        alpha_err = ( fabs( hChan_SB->GetBinContent(bin) * hCtrl_SB->GetBinError(bin) ) + fabs(hChan_SB->GetBinError(bin) * hCtrl_SB->GetBinContent(bin) )  ) / pow(hCtrl_SB->GetBinContent(bin), 2);        
+        alpha_err = ( fabs( hChan_SB->GetBinContent(bin) * hCtrl_SB->GetBinError(bin) ) + fabs(hChan_SB->GetBinError(bin) * hCtrl_SB->GetBinContent(bin) )  ) / pow(hCtrl_SB->GetBinContent(bin), 2);
       }
 			//                 if(chData->second.channel.find("ee"  )==0){alphaUsed = 0.44; alphaUsed_err=0.03;}
 			//                 if(chData->second.channel.find("mumu")==0){alphaUsed = 0.71; alphaUsed_err=0.04;}
@@ -2343,7 +2481,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
       if(hCtrl_SI->Integral(1, hCtrl_SI->GetXaxis()->GetNbins()+1)<=0){ //if no data in emu: take the shape from MC and fix integral of upper stat uncertainty to 1.8events
         double ErrInt = 0;
-        for(int bi=1;bi<=hNRB->GetXaxis()->GetNbins()+1;bi++){                       
+        for(int bi=1;bi<=hNRB->GetXaxis()->GetNbins()+1;bi++){
           double val = hNRB->GetBinContent(bi);
           double err = hNRB->GetBinError(bi);
           double ratio = 1.8/valMC;
@@ -2378,7 +2516,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
       //remove all syst uncertainty
       chNRB->second.shapes[mainHisto.Data()].clearSyst();
-      //add syst uncertainty                 
+      //add syst uncertainty
       chNRB->second.shapes[mainHisto.Data()].uncScale[string("CMS_hzz2l2v_sys_topwww") + systpostfix.Data()] =valDD>=1E-4?valDD*NonResonnantSyst:1.8*valDD;
 
       //printout
@@ -2408,7 +2546,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
 
   //
-  // properly assign syst uncertainty to the instr Met Background 
+  // properly assign syst uncertainty to the instr Met Background
   //
   void AllInfo_t::addInstrMetSyst(FILE* pFile, std::vector<TString>& selCh,TString ctrlCh,TString mainHisto){
     //check that the z+jets proc exist
@@ -2431,14 +2569,14 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
         //remove all syst uncertainty
         chMC->second.shapes[mainHisto.Data()].clearSyst();
-        //add syst uncertainty                 
+        //add syst uncertainty
         chMC->second.shapes[mainHisto.Data()].uncScale[string("_CMS_hzz2l2v_sys_zll") + systpostfix.Data()] = val*GammaJetSyst;
       }
     }
   }
 
   //
-  // properly assign syst uncertainty to the instr Met Background (2017 method) 
+  // properly assign syst uncertainty to the instr Met Background (2017 method)
   //
   void AllInfo_t::addInstrMetSyst_2017(std::vector<TString>& selCh,TString mainHisto){
 		//check that the z+jets proc exist
@@ -2456,7 +2594,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 			TFile* f_InstrMET_allExceptGammaStats = TFile::Open(InstrMET_allExceptGammaStats_Url);
 			if(!f_InstrMET_allExceptGammaStats ){
 			  std::cout<< "Missing InstrMET syst files! No syst for InstrMET!'" << std::endl;
-				continue; 
+				continue;
 			}
 
 
@@ -2471,9 +2609,9 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
         //remove all syst uncertainty
         chMC->second.shapes[mainHisto.Data()].clearSyst();
-        //add syst uncertainty                 
+        //add syst uncertainty
         chMC->second.shapes[mainHisto.Data()].uncShape[string("_CMS_hzz2l2v_sys_"+chMC->second.bin+"_zll") + it->second.shortName+systpostfix.Data()+"Up"] = h_InstrMET_Up_allExceptGammaStats;
-        chMC->second.shapes[mainHisto.Data()].uncShape[string("_CMS_hzz2l2v_sys_"+chMC->second.bin+"_zll") + it->second.shortName+systpostfix.Data()+"Down"] =h_InstrMET_Down_allExceptGammaStats; 
+        chMC->second.shapes[mainHisto.Data()].uncShape[string("_CMS_hzz2l2v_sys_"+chMC->second.bin+"_zll") + it->second.shortName+systpostfix.Data()+"Down"] =h_InstrMET_Down_allExceptGammaStats;
      }
     }
     //Recompute the total background with correct uncertainties
@@ -2493,7 +2631,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
     //open gamma+jet file
     TFile* inF = TFile::Open(DYFile);
-    if( !inF || inF->IsZombie() ){ cout << "Invalid file name : " << DYFile << endl; return; }           
+    if( !inF || inF->IsZombie() ){ cout << "Invalid file name : " << DYFile << endl; return; }
     TDirectory* pdir = (TDirectory *)inF->Get(GammaJetProcName);
     if(!pdir){ printf("Skip Z+Jet estimation because %s directory is missing in Gamma+Jet file\n", GammaJetProcName.Data()); return;}
     gROOT->cd(); //make sure that all histograms that will be created will be in memory and not in file
@@ -2560,7 +2698,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         printf("Gamma+Jet templates have a different bin width in %s channel:", chMC->first.c_str());
         double mcwidth = hMC->GetXaxis()->GetBinWidth(1);
         if(dywidth>mcwidth){
-          printf("bin width in Gamma+Jet templates is larger than in MC samples (%f vs %f) --> can not rebin!\nStop the script here\n", dywidth,mcwidth); 
+          printf("bin width in Gamma+Jet templates is larger than in MC samples (%f vs %f) --> can not rebin!\nStop the script here\n", dywidth,mcwidth);
           exit(0);
         }else{
           int rebinfactor = (int)(mcwidth/dywidth);
@@ -2602,7 +2740,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     //recompute total background
     computeTotalBackground();
 
-    //printouts 
+    //printouts
     if(pFile){
       fprintf(pFile,"\\begin{table}[htp]\n\\begin{center}\n\\caption{Instrumental background estimation.}\n\\label{tab:table}\n");
       fprintf(pFile,"\\begin{tabular}{|l|c|c|c|}\\hline\n");
@@ -2611,7 +2749,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       fprintf(pFile,"\\hline\n");
       fprintf(pFile,"\\end{tabular}\n\\end{center}\n\\end{table}\n");
       fprintf(pFile,"\n\n\n\n");
-    }      
+    }
   }
 
 
@@ -2628,7 +2766,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
     //open gamma+jet file
     TFile* inF = TFile::Open(FREFile);
-    if( !inF || inF->IsZombie() ){ cout << "Invalid file name : " << FREFile << endl; return; }           
+    if( !inF || inF->IsZombie() ){ cout << "Invalid file name : " << FREFile << endl; return; }
     TDirectory* pdir = (TDirectory *)inF;
 		//           TDirectory* pdir = (TDirectory *)inF->Get(GammaJetProcName);
 		//           if(!pdir){ printf("Skip Z+Jet estimation because %s directory is missing in Gamma+Jet file\n", GammaJetProcName.Data()); return;}
@@ -2636,12 +2774,12 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
 
     //check that the data proc exist
-    std::map<string, ProcessInfo_t>::iterator dataProcIt=procs.find("data");             
+    std::map<string, ProcessInfo_t>::iterator dataProcIt=procs.find("data");
     if(dataProcIt==procs.end()){printf("The process 'data' was not found... can not do non-resonnant background prediction\n"); return;}
 
     //create a new proc for Z+Jets datadriven backgrounds as a copy of the MC one
     TString DDProcName = "FakeLep";
-    for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==DDProcName.Data()){sorted_procs.erase(p);break;}}           
+    for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==DDProcName.Data()){sorted_procs.erase(p);break;}}
     sorted_procs.push_back(DDProcName.Data());
     procs[DDProcName.Data()] = ProcessInfo_t(); //reset
     ProcessInfo_t& procInfo_DD = procs[DDProcName.Data()];
@@ -2666,12 +2804,12 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     for(std::vector<string>::iterator p=toBeDelete.begin();p!=toBeDelete.end();p++){procs.erase(procs.find((*p)));}
 
 
-    for(std::map<string, ChannelInfo_t>::iterator chData = dataProcIt->second.channels.begin(); chData!=dataProcIt->second.channels.end(); chData++){            
+    for(std::map<string, ChannelInfo_t>::iterator chData = dataProcIt->second.channels.begin(); chData!=dataProcIt->second.channels.end(); chData++){
       if(std::find(selCh.begin(), selCh.end(), chData->second.channel)==selCh.end())continue;
 
-      std::map<string, ChannelInfo_t>::iterator chDD  = procInfo_DD.channels.find(chData->first);  
+      std::map<string, ChannelInfo_t>::iterator chDD  = procInfo_DD.channels.find(chData->first);
       if(chDD==procInfo_DD.channels.end()){  //this channel does not exist, create it
-        procInfo_DD.channels[chData->first] = ChannelInfo_t();     
+        procInfo_DD.channels[chData->first] = ChannelInfo_t();
         chDD                = procInfo_DD.channels.find(chData->first);
         chDD->second.bin     = chData->second.bin;
         chDD->second.channel = chData->second.channel;
@@ -2712,7 +2850,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
         printf("fake rate templates have a different bin width in %s channel:", chData->first.c_str());
         double mcwidth = hMC->GetXaxis()->GetBinWidth(1);
         if(dywidth>mcwidth){
-          printf("bin width in fake rate templates is larger than in MC samples (%f vs %f) --> can not rebin!\nStop the script here\n", dywidth,mcwidth); 
+          printf("bin width in fake rate templates is larger than in MC samples (%f vs %f) --> can not rebin!\nStop the script here\n", dywidth,mcwidth);
           exit(0);
         }else{
           int rebinfactor = (int)(mcwidth/dywidth);
@@ -2734,8 +2872,8 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       //save histogram to the structure
       hDD->Scale(DDRescale);
 	    //for(int x=0;x<=hDD->GetXaxis()->GetNbins()+1;x++){
-	    //      cout << "DD: " << hDD->GetBinContent(x) << " in bin x " << x << endl; 
-	    //      cout << "MC: " << hMC->GetBinContent(x) << " in bin x " << x << endl; 
+	    //      cout << "DD: " << hDD->GetBinContent(x) << " in bin x " << x << endl;
+	    //      cout << "MC: " << hMC->GetBinContent(x) << " in bin x " << x << endl;
       //      if(hDD->GetBinContent(x)==0 && hMC->GetBinContent(x)==0){
 			//	      hDD->SetBinContent(x,2E-6);
 			//	      hMC->SetBinContent(x,2E-6);
@@ -2766,7 +2904,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     //recompute total background
     computeTotalBackground();
 
-    //printouts 
+    //printouts
     if(pFile){
       fprintf(pFile,"\\begin{table}[htp]\n\\begin{center}\n\\caption{fake lepton background estimation.}\n\\label{tab:table}\n");
       fprintf(pFile,"\\begin{tabular}{|l|c|c|c|}\\hline\n");
@@ -2775,7 +2913,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       fprintf(pFile,"\\hline\n");
       fprintf(pFile,"\\end{tabular}\n\\end{center}\n\\end{table}\n");
       fprintf(pFile,"\n\n\n\n");
-    }      
+    }
   }
 
 
@@ -2793,7 +2931,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       if(it==procs.end())continue;
       for(std::map<string, ChannelInfo_t>::iterator ch = it->second.channels.begin(); ch!=it->second.channels.end(); ch++){
         if(ch->second.shapes.find(histoName)==(ch->second.shapes).end())continue;
-        ShapeData_t& shapeInfo = ch->second.shapes[histoName];      
+        ShapeData_t& shapeInfo = ch->second.shapes[histoName];
         for(std::map<string, TH1*  >::iterator unc=shapeInfo.uncShape.begin();unc!=shapeInfo.uncShape.end();unc++){
           TH1* histo = unc->second;
           if(!histo)continue;
@@ -2812,8 +2950,8 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           }
 
 		  		//Old Binning
-          //double xbins[] = {150, 300, 450, 600, 850, 1100, 1600, 2100, 3000}; 
-          //double xbins[] = {150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 1850, 2100, 2600, 3000}; 
+          //double xbins[] = {150, 300, 450, 600, 850, 1100, 1600, 2100, 3000};
+          //double xbins[] = {150, 225, 300, 375, 450, 525, 600, 725, 850, 975, 1100, 1350, 1600, 1850, 2100, 2600, 3000};
           //int nbins=sizeof(xbins)/sizeof(double);
           //unc->second = histo->Rebin(nbins-1, histo->GetName(), (double*)xbins);
           //utils::root::fixExtremities(unc->second, true, true);
@@ -2823,7 +2961,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
   }
 
   //
-  // Interpollate the signal sample between two mass points 
+  // Interpollate the signal sample between two mass points
   //
   void AllInfo_t::SignalInterpolation(string histoName){
     if(massL<0 || massR<0 || massL==massR)return;
@@ -2842,10 +2980,10 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       if(it->second.mass == massR)procLeftRight[procNameWithoutMass.Data()].second = it->first;
     }
 
-    double Ratio = ((double)mass - massL); Ratio/=(massR - massL); 
+    double Ratio = ((double)mass - massL); Ratio/=(massR - massL);
     for(std::map<string, std::pair<string, string> >::iterator procLR = procLeftRight.begin(); procLR!=procLeftRight.end();procLR++){
       TString signProcName =  procLR->first;
-      signProcName.ReplaceAll("()","(");              
+      signProcName.ReplaceAll("()","(");
       signProcName+=(int)mass; signProcName+=")";
       printf("Interpolate %s  based on %s and %s\n", signProcName.Data(), procLR->second.first.c_str(), procLR->second.second.c_str());
 
@@ -2863,13 +3001,13 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       proc.isSign    = procL.isSign;
       proc.isBckg    = procL.isBckg;
       proc.mass      = mass;
-      proc.xsec      = procL.xsec + (Ratio * (procR.xsec - procL.xsec)); 
+      proc.xsec      = procL.xsec + (Ratio * (procR.xsec - procL.xsec));
       proc.br        = procL.br   + (Ratio * (procR.br   - procL.br));
 
       for(std::map<string, ChannelInfo_t>::iterator ch  = proc .channels.begin(); ch !=proc.channels.end(); ch++){
         std::map<string, ChannelInfo_t>::iterator chL = procL.channels.find(ch->first);
         std::map<string, ChannelInfo_t>::iterator chR = procR.channels.find(ch->first);
-        if(chL==procL.channels.end())continue; 
+        if(chL==procL.channels.end())continue;
         if(chR==procR.channels.end())continue;
         if(ch ->second.shapes.find(histoName)==(ch ->second.shapes).end())continue;
         if(chL->second.shapes.find(histoName)==(chL->second.shapes).end())continue;
@@ -2911,8 +3049,8 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
       }
 
       //erase sideband procs
-      for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==procLR->second.first ){sorted_procs.erase(p);break;}}              
-      for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==procLR->second.second){sorted_procs.erase(p);break;}}       
+      for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==procLR->second.first ){sorted_procs.erase(p);break;}}
+      for(std::vector<string>::iterator p=sorted_procs.begin(); p!=sorted_procs.end();p++){if((*p)==procLR->second.second){sorted_procs.erase(p);break;}}
       procs.erase(procs.find(procLR->second.first ));
       procs.erase(procs.find(procLR->second.second ));
     }
@@ -2920,7 +3058,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
 
   //
-  // Rescale VBF events to match SM ggF/VBF production 
+  // Rescale VBF events to match SM ggF/VBF production
   //
   void AllInfo_t::scaleVBF(string histoName){
     if(mass<=0)return;
@@ -2929,7 +3067,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     for(unsigned int p=0;p<sorted_procs.size();p++){
       string procName = sorted_procs[p];
       std::map<string, ProcessInfo_t>::iterator it=procs.find(procName);
-      if(it==procs.end() || !it->second.isSign)continue;              
+      if(it==procs.end() || !it->second.isSign)continue;
       if(procName.find("qqH")==string::npos)continue;
 
       double scale = Hxswg::utils::getVBFoverGGF(systpostfix.Data())->Eval(mass);
@@ -2949,7 +3087,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 
 
   //
-  // Rescale signal sample for the effect of the interference and propagate the uncertainty 
+  // Rescale signal sample for the effect of the interference and propagate the uncertainty
   //
   void AllInfo_t::RescaleForInterference(string histoName){
     if(mass<=0)return;
@@ -2984,7 +3122,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
 					//                    sF=1 + (sF-1)/pow(cprime,2);   sFDn = 1.0;  sFUp = 1 + (sF-1)*2;        //100% Uncertainty
           sF=1 + (sF-1)/(cprime* sqrt(1-brnew));   sFDn = 1.0;  sFUp = 1 + (sF-1)*2;        //100% Uncertainty
           if(sF<1){sF=1.0;  sFUp = 1 + (sF-1)*2;}
-          printf("Scale Factor for Narrow Resonnance : %f [%f,%f] applied on %s\n", sF, sFDn, sFUp, it->first.c_str());                  
+          printf("Scale Factor for Narrow Resonnance : %f [%f,%f] applied on %s\n", sF, sFDn, sFUp, it->first.c_str());
         }else{
           printf("Scale Factor for Interference : %f [%f,%f] applied on %s\n",sF, sFDn, sFUp, it->first.c_str());
         }
@@ -3018,7 +3156,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     }
 
     //
-    // merge histograms from different bins together... but keep the channel separated 
+    // merge histograms from different bins together... but keep the channel separated
     //
     void AllInfo_t::mergeBins(std::vector<string>& binsToMerge, string NewName){
       printf("Merge the following bins of the same channel together: "); for(unsigned int i=0;i<binsToMerge.size();i++){printf("%s ", binsToMerge[i].c_str());}
@@ -3035,7 +3173,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
             if(ch->second.bin     == ch2->second.bin    )continue; //make sure we do not merge with itself
             if(find(binsToMerge.begin(), binsToMerge.end(), ch2->second.bin)==binsToMerge.end())continue;  //make sure this bin should be merged
             addChannel(ch->second, ch2->second); //FIXME this only adds the nominal shapes, not also the syst
-            it->second.channels.erase(ch2);  
+            it->second.channels.erase(ch2);
             ch2=ch;
           }
           ch->second.bin = NewName;
@@ -3067,7 +3205,7 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
           for(int binx=1;binx<=histo->GetNbinsX();binx++){
             if(histo->GetBinContent(binx)<=0){histo->SetBinContent(binx, 1E-6); histo->SetBinError(binx, 1E-6);  }
           }
-          double EndIntegral = histo->Integral();                 
+          double EndIntegral = histo->Integral();
           shapeInfo.rescaleScaleUncertainties(StartIntegral, EndIntegral);
 
 
@@ -3082,8 +3220,3 @@ void AllInfo_t::getYieldsFromShape(FILE* pFile, std::vector<TString>& selCh, str
     //recompute total background
     computeTotalBackground();
   }
-
-
-
-
-

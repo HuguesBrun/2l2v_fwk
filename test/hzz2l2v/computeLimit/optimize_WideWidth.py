@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import math
-import os,sys
+import os,sys,re
 #import json
 import getopt
 import commands
@@ -30,14 +30,15 @@ phase=-1
 
 MODELS=["SM"] #,"RsGrav","BulkGrav","Rad"] #Models which can be used are: "RsGrav", "BulkGrav", "Rad", "SM"
 based_key="2l2v_datadriven_" #mcbased_" #to run limits on MC use: 2l2v_mcbased_, to use data driven obj use: 2l2v_datadriven_
-jsonPath='$CMSSW_BASE/src/UserCode/llvv_fwk/test/hzz2l2v/samples_full2016_GGH_VBF.json' #samples_full2016_GGH_WithoutBckg.json' #samples_full2016_GGH_WithoutWZ.json' #samples_full2016_GGH_WithoutWZandZVV.json' #samples_full2016_GGH_WithoutIrriducible.json' #samples_full2016_GGH.json'
-inUrl='/eos/cms/store/user/hbrun/analysis/plotters/plotter_2017_06_08_forLimits_JulyFromAlessio.root'
+jsonPath='$CMSSW_BASE/src/UserCode/llvv_fwk/test/hzz2l2v/samples_full2016_gridComplete_GGH_VBF.json' #samples_full2016_GGH_WithoutBckg.json' #samples_full2016_GGH_WithoutWZ.json' #samples_full2016_GGH_WithoutWZandZVV.json' #samples_full2016_GGH_WithoutIrriducible.json' #samples_full2016_GGH.json'
+#inUrl='/eos/cms/store/user/hbrun/analysis/plotters/plotter_2017_07_31_withGrid.root'
+inUrl='/eos/cms/store/user/hbrun/analysis/plotters/plotter_grid_2017_10_3.forLimits.root'
 BESTDISCOVERYOPTIM=True #Set to True for best discovery optimization, Set to False for best limit optimization
 ASYMTOTICLIMIT=True #Set to True to compute asymptotic limits (faster) instead of toy based hybrid-new limits
 BINS = ["eq0jets,geq1jets,vbf"] # list individual analysis bins to consider as well as combined bins (separated with a coma but without space)
 
-MASS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 2500, 3000]
-SUBMASS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 2500, 3000] 
+MASS = [300, 320, 340, 360, 380, 400, 420, 440, 460, 480,500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000]
+SUBMASS = [300, 320, 340, 360, 380, 400, 420, 440, 460, 480,500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000]
 
 LandSArgCommonOptions="  --BackExtrapol --statBinByBin 0.00001 --dropBckgBelow 0.00001  --subNRB"
 
@@ -45,24 +46,24 @@ for model in MODELS:
    for shape in ["mt_shapes"]:# --histoVBF met_shapes"]:  #here run all the shapes you want to test.  '"mt_shapes --histoVBF met_shapes"' is a very particular case since we change the shape for VBF
       for bin in BINS:
          if(model=="SM" or model=="MELA"):
-            for CP in [100.0,10.0,5.0]:
+            for CP in [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0]:
                if(CP!=100.0 and not ',' in bin):continue  #only do subchannel for SM
                for BRN in [0.0]:
     
                    suffix = "_cp%4.2f_brn%4.2f" % (CP, BRN)
- 
+		   print "nom dir= " + suffix
                    #Run limit for ShapeBased GG+VBF
-                   #signalSuffixVec += [ suffix ]
-                   #OUTName         += ["SB13TeV_SM"]
-                   #LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + " --systpostfix _13TeV --shape "]  #as this combine ggF and VBF, we need to scale VBF to the SM ratio expectation
-                   #BIN             += [bin]
-                   #MODEL           += [model]
-
                    signalSuffixVec += [ suffix ]
-                   OUTName         += ["SB13TeV_SM_GGF"]
-                   LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + "  --systpostfix _13TeV --shape --skipQQH "]
+                   OUTName         += ["SB13TeV_SM"]
+                   LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + " --systpostfix _13TeV --shape "]  #as this combine ggF and VBF, we need to scale VBF to the SM ratio expectation
                    BIN             += [bin]
-                   MODEL          += [model]
+                   MODEL           += [model]
+
+                   #signalSuffixVec += [ suffix ]
+                   #OUTName         += ["SB13TeV_SM_GGF"]
+                   #LandSArgOptions += [" --histo " + shape + " --histoVBF " + shape + "  --systpostfix _13TeV --shape --skipQQH "]
+                   #BIN             += [bin]
+                   #MODEL          += [model]
 
                    #signalSuffixVec += [ suffix ]
                    #OUTName         += ["SB13TeV_SM_VBF"]
@@ -173,13 +174,8 @@ for signalSuffix in signalSuffixVec :
    file = ROOT.TFile(inUrl)
    cutsH = file.Get('ggH(200)_BOnly/all_optim_cut') 
 
-   #Cp
-   if "100.0" in signalSuffix:
-   	cp = 100.0
-   elif "10.0" in signalSuffix:
-	cp = 10.0
-   elif "5.0" in signalSuffix:
-        cp = 5.0     
+   #C
+   cp = re.split("\.",re.split("cp",signalSuffix)[1])[0]
  
    ###################################################
    ##   OPTIMIZATION LOOP                           ##
@@ -343,60 +339,59 @@ for signalSuffix in signalSuffixVec :
       LaunchOnCondor.SendCluster_Create(FarmDirectory, JobName + "_"+signalSuffix+binSuffix+OUTName[iConf])
       for m in SUBMASS:
 
-           SideMasses = findSideMassPoint(m)
-           indexString = ' '
-           indexLString = ' '
-           indexRString = ' '
-           for bin in BIN[iConf].split(',') :
-               Gcut  = []
-               for c in range(1, cutsH.GetYaxis().GetNbins()+1):
-                 Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #add a graph for each cut
-               Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #also add a graph for shapeMin
-               Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #also add a graph for shapeMax
-
-               INbinSuffix = "_" + bin 
-               IN = CWD+'/JOBS/'+OUTName[iConf]+signalSuffix+INbinSuffix+'/'
-               try:
-                  listcuts = open(IN+'cuts.txt',"r")
-                  mi=0
-                  for line in listcuts :
-                     vals=line.split(' ')
-                     for c in range(1, cutsH.GetYaxis().GetNbins()+3):
-                        #FIXME FORCE INDEX TO BE 17 (Met>125GeV)
-                        Gcut[c-1].SetPoint(mi, 17, float(125));
+        #   SideMasses = findSideMassPoint(m)
+        #   indexString = ' '
+        #   indexLString = ' '
+        #   indexRString = ' '
+        #   for bin in BIN[iConf].split(',') :
+        #       Gcut  = []
+        #       for c in range(1, cutsH.GetYaxis().GetNbins()+1):
+        #         Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #add a graph for each cut
+        #       Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #also add a graph for shapeMin
+        #       Gcut.extend([ROOT.TGraph(len(SUBMASS))]) #also add a graph for shapeMax
+#
+ #              INbinSuffix = "_" + bin 
+  #             IN = CWD+'/JOBS/'+OUTName[iConf]+signalSuffix+INbinSuffix+'/'
+  #             try:
+  #                listcuts = open(IN+'cuts.txt',"r")
+  #                mi=0
+  #                for line in listcuts :
+  #                   vals=line.split(' ')
+  #                   for c in range(1, cutsH.GetYaxis().GetNbins()+3):
+   #                     #FIXME FORCE INDEX TO BE 17 (Met>125GeV)
+   #                     Gcut[c-1].SetPoint(mi, 17, float(125));
    #                     Gcut[c-1].SetPoint(mi, float(vals[0]), float(vals[c+1]));
-                     mi+=1
-                  for c in range(1, cutsH.GetYaxis().GetNbins()+3): Gcut[c-1].Set(mi);
-                  listcuts.close();          
-               except:
-                  mi=0
-                  for mtmp in SUBMASS:
-                     for c in range(1, cutsH.GetYaxis().GetNbins()+3):
-                        #FIXME FORCE INDEX TO BE 17 (Met>125GeV)
-                        Gcut[c-1].SetPoint(mi, 17, float(125));
-                     mi+=1
-                  for c in range(1, cutsH.GetYaxis().GetNbins()+3): Gcut[c-1].Set(mi);
+   #                  mi+=1
+   #               for c in range(1, cutsH.GetYaxis().GetNbins()+3): Gcut[c-1].Set(mi);
+   #               listcuts.close();          
+   #            except:
+   #               mi=0
+   #               for mtmp in SUBMASS:
+   #                  for c in range(1, cutsH.GetYaxis().GetNbins()+3):
+   #                     #FIXME FORCE INDEX TO BE 17 (Met>125GeV)
+    #                    Gcut[c-1].SetPoint(mi, 17, float(125));
+    #                 mi+=1
+    #              for c in range(1, cutsH.GetYaxis().GetNbins()+3): Gcut[c-1].Set(mi);
 
                #add comma to index string if it is not empty
-               if(indexString!=' '):
-                  indexString+=','
-                  if(not (SideMasses[0]==SideMasses[1])):
-                     indexLString+=','
-                     indexRString+=','
+     #          if(indexString!=' '):
+     #             indexString+=','
+     #             if(not (SideMasses[0]==SideMasses[1])):
+     #                indexLString+=','
+     #                indexRString+=','
 
                #find the cut index for the current mass point
-               indexString += str(findCutIndex(cutsH, Gcut, m));
-               if(not (SideMasses[0]==SideMasses[1])):
-                  indexLString = str(findCutIndex(cutsH, Gcut, SideMasses[0]));
-                  indexRString = str(findCutIndex(cutsH, Gcut, SideMasses[1]));
+      #         indexString += str(findCutIndex(cutsH, Gcut, m));
+      #         if(not (SideMasses[0]==SideMasses[1])):
+      #            indexLString = str(findCutIndex(cutsH, Gcut, SideMasses[0]));
+      #            indexRString = str(findCutIndex(cutsH, Gcut, SideMasses[1]));
 
            #print indexString
 
-           cutStr = " "
-           SideMassesArgs = ""
-           if(not (SideMasses[0]==SideMasses[1])):
-               SideMassesArgs += "--mL " + str(SideMasses[0]) + " --mR " + str(SideMasses[1]) + " --indexL " + indexLString +  " --indexR " + indexRString + " "
-
+       #    cutStr = " "
+       #    SideMassesArgs = ""
+       #    if(not (SideMasses[0]==SideMasses[1])):
+       #        SideMassesArgs += "--mL " + str(SideMasses[0]) + " --mR " + str(SideMasses[1]) + " --indexL " + indexLString +  " --indexR " + indexRString + " "
            SCRIPT = open(OUT+'/script_mass_'+str(m)+'.sh',"w")
            SCRIPT.writelines('cd ' + CMSSW_BASE + ';\n')
            SCRIPT.writelines("export SCRAM_ARCH="+os.getenv("SCRAM_ARCH","slc6_amd64_gcc491")+";\n")
@@ -409,41 +404,52 @@ for signalSuffix in signalSuffixVec :
 	   SCRIPT.writelines('mkdir '+cardsdir+'; cd '+cardsdir+'\n')
            SCRIPT.writelines('mkdir -p out;\ncd out;\n')
 	   #SCRIPT.writelines("computeLimit --m " + str(m) + " --in " + inUrl + " " + " --index " + indexString + " --bins " + BIN[iConf] + " --json " + jsonUrl + " " + SideMassesArgs + " " + LandSArg + cutStr  +" ;\n")
-           SCRIPT.writelines("computeLimit --m " + str(m) + " --in " + inUrl + " " + "--syst --index " + indexString + " --bins " + BIN[iConf] + " --json " + jsonUrl + " " + SideMassesArgs + " " + LandSArg + cutStr  +" ;\n")
+           SCRIPT.writelines("computeLimit --m " + str(m) + " --in " + inUrl + " " + "--syst --index 17,17,17  --bins " + BIN[iConf] + " --json " + jsonUrl + " " + LandSArg +" ;\n")
            SCRIPT.writelines("sh combineCards.sh;\n"); 
-	   SCRIPT.writelines("text2workspace.py card_combined.dat -o workspace.root -P UserCode.llvv_fwk.HiggsWidth:higgswidth --PO verbose --PO \'is2l2nu\' --PO m=\'" + str(m) + "\' --PO w=\'" + str(cp) + "\' \n")
-           #compute pvalue
-           SCRIPT.writelines("combine -M ProfileLikelihood --signif --pvalue -m " +  str(m) + "  workspace.root > COMB.log;\n")
-	   SCRIPT.writelines("combine -M MaxLikelihoodFit workspace.root  \n")
-	   SCRIPT.writelines("python " + CMSSW_BASE + "/src/HiggsAnalysis/CombinedLimit/test/diffNuisances.py  mlfit.root -g Nuisance_CrossCheck.root \n")
+	   SCRIPT.writelines("text2workspace.py card_combined.dat -o workspace.root -P UserCode.llvv_fwk.HeavyScalarMod:heavyscalarmod --PO verbose --PO \'is2l2nu\' --PO m=\'" + str(m) + "\' --PO w=\'" + str(cp) + "\' \n")
+#           SCRIPT.writelines("combine -M ProfileLikelihood --signif --pvalue -m " +  str(m) + "  workspace.root --setPhysicsModelParameters fvbf=0 --freezeNuisances fvbf > COMB.log;\n")
+#           SCRIPT.writelines("mv higgsCombineTest.ProfileLikelihood.mH" + str(m) + ".root higgsCombineTest.ProfileLikelihood.mH" + str(m) + "_ggH.root;\n")
+#           SCRIPT.writelines("combine -M ProfileLikelihood --signif --pvalue -m " +  str(m) + "  workspace.root --setPhysicsModelParameters fvbf=1 --freezeNuisances fvbf > COMB.log;\n")
+#           SCRIPT.writelines("mv higgsCombineTest.ProfileLikelihood.mH" + str(m) + ".root higgsCombineTest.ProfileLikelihood.mH" + str(m) + "_qqH.root;\n")
+#	   SCRIPT.writelines("combine -M MaxLikelihoodFit workspace.root --setPhysicsModelParameters fvbf=0 --freezeNuisances fvbf  \n")
+#	   SCRIPT.writelines("python " + CMSSW_BASE + "/src/HiggsAnalysis/CombinedLimit/test/diffNuisances.py  mlfit.root -g Nuisance_CrossCheck.root \n")
 
 	   ##fvbf=0 for GGH and 1 for VBF
            ### THIS IS FOR Asymptotic fit
            if(ASYMTOTICLIMIT==True):
-              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root >>  COMB.log;\n") 
-
+              rLimit = ""
+              if (m>400):
+                  rLimit="--rMin -50 --rMax 50"
+              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root --setPhysicsModelParameters fvbf=0 --freezeNuisances fvbf " + rLimit + " >>  COMB.log;\n") 
+              SCRIPT.writelines("mv higgsCombineTest.Asymptotic.mH" + str(m) + ".root higgsCombineTest.Asymptotic.mH" + str(m) + "_ggH.root;\n") 
+              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root --setPhysicsModelParameters fvbf=0 --freezeNuisances fvbf " + rLimit + " --run blind  >>  COMB_blind.log;\n") 
+              SCRIPT.writelines("mv higgsCombineTest.Asymptotic.mH" + str(m) + ".root higgsCombineTest.Asymptotic.mH" + str(m) + "_ggH_blinded.root;\n") 
+              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root --setPhysicsModelParameters fvbf=1 --freezeNuisances fvbf " + rLimit + " >>  COMB_VBF.log;\n") 
+              SCRIPT.writelines("mv higgsCombineTest.Asymptotic.mH" + str(m) + ".root higgsCombineTest.Asymptotic.mH" + str(m) + "_qqH.root;\n") 
+              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root --setPhysicsModelParameters fvbf=1 --freezeNuisances fvbf " + rLimit + " --run blind >>  COMB_VBF_blind.log;\n") 
+              SCRIPT.writelines("mv higgsCombineTest.Asymptotic.mH" + str(m) + ".root higgsCombineTest.Asymptotic.mH" + str(m) + "_qqH_blinded.root;\n") 
            ### THIS is for toy (hybridNew) fit
-           else:
-              SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root > COMB.log;\n") #first run assymptotic limit to get quickly the range of interest
-              SCRIPT.writelines("rm higgsCombineTest.Asymptotic*.root;\n")
-              SCRIPT.writelines("RMIN=`cat COMB.log | grep 'Expected  2.5%' | awk '{print $5;}'`;\n") #get the low edge 2sigma band from the assymptotic --> will be used to know where to put points
-              SCRIPT.writelines("RMAX=`cat COMB.log | grep 'Expected 97.5%' | awk '{print $5;}'`;\n") #get the high edge 2sigma band from the assymptotic --> will be used to know where to put points
-              SCRIPT.writelines('echo "expected limit from the assymptotic in the 2sigma range [$RMIN, $RMAX]";\n')
-              SCRIPT.writelines('RMIN=$(echo "$RMIN*0.5" | bc);\n'); #DIVIDE RMIN   BY 2 to make sure we are considering large space enough
-              SCRIPT.writelines('RMAX=$(echo "$RMAX*3.0" | bc);\n'); #MULTIPLY RMAX BY 3 to make sure we are considering large space enough
-              SCRIPT.writelines('echo "for the hybridNew, consider r to be in the range [$RMIN, $RMAX]";\n')
-              SCRIPT.writelines("makeGridUsingCrab.py card_combined.dat $RMIN $RMAX -n 40 -m "+str(m)+" -o grid ;\n")
-              SCRIPT.writelines("rm grid.root;\n")
-              SCRIPT.writelines("sh grid.sh 1 16 &> /dev/null;\n")
-              SCRIPT.writelines("rm higgsCombinegrid.HybridNew.*;\n")
-              SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+";\n")
-              SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.025;\n")
-              SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.160;\n")
-              SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.500;\n")
-              SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.840;\n")
-              SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.975;\n")
-              SCRIPT.writelines("hadd -f higgsCombineTest.HybridNewMerged.mH"+str(m)+".root  higgsCombineTest.HybridNew.mH"+str(m)+"*.root;\n")
-              SCRIPT.writelines("rm higgsCombineTest.HybridNew.mH"+str(m)+"*.root;\n")
+    #       else:
+   #           SCRIPT.writelines("combine -M Asymptotic -m " +  str(m) + " workspace.root > COMB.log;\n") #first run assymptotic limit to get quickly the range of interest
+     #         SCRIPT.writelines("rm higgsCombineTest.Asymptotic*.root;\n")
+     #         SCRIPT.writelines("RMIN=`cat COMB.log | grep 'Expected  2.5%' | awk '{print $5;}'`;\n") #get the low edge 2sigma band from the assymptotic --> will be used to know where to put points
+    #          SCRIPT.writelines("RMAX=`cat COMB.log | grep 'Expected 97.5%' | awk '{print $5;}'`;\n") #get the high edge 2sigma band from the assymptotic --> will be used to know where to put points
+    #          SCRIPT.writelines('echo "expected limit from the assymptotic in the 2sigma range [$RMIN, $RMAX]";\n')
+    #          SCRIPT.writelines('RMIN=$(echo "$RMIN*0.5" | bc);\n'); #DIVIDE RMIN   BY 2 to make sure we are considering large space enough
+    #          SCRIPT.writelines('RMAX=$(echo "$RMAX*3.0" | bc);\n'); #MULTIPLY RMAX BY 3 to make sure we are considering large space enough
+     #         SCRIPT.writelines('echo "for the hybridNew, consider r to be in the range [$RMIN, $RMAX]";\n')
+     #         SCRIPT.writelines("makeGridUsingCrab.py card_combined.dat $RMIN $RMAX -n 40 -m "+str(m)+" -o grid ;\n")
+     #         SCRIPT.writelines("rm grid.root;\n")
+      #        SCRIPT.writelines("sh grid.sh 1 16 &> /dev/null;\n")
+      #        SCRIPT.writelines("rm higgsCombinegrid.HybridNew.*;\n")
+       #       SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+";\n")
+       #       SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.025;\n")
+        #      SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.160;\n")
+        #      SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.500;\n")
+         #     SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.840;\n")
+         #     SCRIPT.writelines("combine workspace.root -M HybridNew --grid=grid.root -m "+str(m)+" --expectedFromGrid 0.975;\n")
+         #     SCRIPT.writelines("hadd -f higgsCombineTest.HybridNewMerged.mH"+str(m)+".root  higgsCombineTest.HybridNew.mH"+str(m)+"*.root;\n")
+        #      SCRIPT.writelines("rm higgsCombineTest.HybridNew.mH"+str(m)+"*.root;\n")
 
            SCRIPT.writelines('mkdir -p ' + CWD+'/'+cardsdir+';\n')
            SCRIPT.writelines('mv * ' + CWD+'/'+cardsdir+'/.;\n')
