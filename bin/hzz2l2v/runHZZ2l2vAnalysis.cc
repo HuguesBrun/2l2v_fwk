@@ -135,9 +135,9 @@ int main(int argc, char* argv[])
   bool isMC_Wlnu_inclusive = (isMC && dtag.Contains("_WJets_") && !dtag.Contains("HT"));
   bool isMC_Wlnu_HT100 = (isMC && dtag.Contains("_WJets_HT-") );
 
-  bool isMC_WGToLNuG = (isMC && dtag.Contains("WGToLNuG") );      
-  bool isMC_ZNuNuGJets = (isMC && dtag.Contains("ZNuNuGJets")); 
-  bool isMC_ZJetsToNuNu = (isMC && dtag.Contains("ZJetsToNuNu")); 
+  bool isMC_WGToLNuG = (isMC && dtag.Contains("WGToLNuG") );
+  bool isMC_ZNuNuGJets = (isMC && dtag.Contains("ZNuNuGJets"));
+  bool isMC_ZJetsToNuNu = (isMC && dtag.Contains("ZJetsToNuNu"));
 
   bool isMC_QCD = (isMC && dtag.Contains("QCD"));
   bool isMC_GJet = (isMC && dtag.Contains("GJet"));
@@ -503,7 +503,7 @@ int main(int argc, char* argv[])
   mon.addHistogram(new TH1F("metphi", ";MET #phi;Events", 80, -4, 4) );
   mon.addHistogram(new TH1F("metphiUnCor", ";MET #phi;Events", 80, -4, 4) );
   mon.addHistogram(new TH1F("dphi_boson_met", ";#Delta #phi(Z/#gamma,MET);Events", 40, 0, 4) );
-  mon.addHistogram(new TH1F("dphi_boson_met125", ";#Delta #phi(Z/#gamma,MET);Events", 40, 0, 4) ); 
+  mon.addHistogram(new TH1F("dphi_boson_met125", ";#Delta #phi(Z/#gamma,MET);Events", 40, 0, 4) );
 
   //lepton control
   mon.addHistogram( new TH1F( "nleptons",   ";Nleptons;Events",10,0,10) );
@@ -623,8 +623,8 @@ int main(int argc, char* argv[])
   mon.addHistogram( new TH1F("vbfmjjfinal"       , ";Dijet invariant mass [GeV];Events / GeV",31,mjjaxis) );
   mon.addHistogram( new TH1F("vbfdetajjfinal"    , ";Pseudo-rapidity span;Events",20,0,10) );
 
-  TH2F *hmet2D=(TH2F *) mon.addHistogram( new TH2F ("met_vs_dphi",";Missing transverse energy [GeV];#Delta #phi(Z/#gamma,MET)",nmetAxis-1,metaxis,40, 0, 4) ); 
-  TH2F *hmt2D=(TH2F *) mon.addHistogram( new TH2F ("mt_vs_dphi",";Transverse mass [GeV];#Delta #phi(Z/#gamma,MET)",nmtAxis-1,mtaxis,40, 0, 4) ); 
+  TH2F *hmet2D=(TH2F *) mon.addHistogram( new TH2F ("met_vs_dphi",";Missing transverse energy [GeV];#Delta #phi(Z/#gamma,MET)",nmetAxis-1,metaxis,40, 0, 4) );
+  TH2F *hmt2D=(TH2F *) mon.addHistogram( new TH2F ("mt_vs_dphi",";Transverse mass [GeV];#Delta #phi(Z/#gamma,MET)",nmtAxis-1,mtaxis,40, 0, 4) );
 
   mon.addHistogram( new TH1F( "mzz",   ";M_{ZZ} [GeV];Events / GeV", 150, 0, 1500) ); //The binning is the same than the one for the corrections.
 
@@ -717,7 +717,7 @@ int main(int argc, char* argv[])
   rochcor2015* muCor2015 = NULL; //need to be updated for 2016
   if(is2015MC || is2015data) muCor2015 = new rochcor2015();  //replace the MuScleFitCorrector we used at run1
   rochcor2016* muCor2016 = NULL; //need to be updated for 2016
-  if(is2016MC || is2016data) muCor2016 = new rochcor2016();  //replace the MuScleFitCorrector we used at run1
+  //if(is2016MC || is2016data) muCor2016 = new rochcor2016();  //replace the MuScleFitCorrector we used at run1
 
   //photon and electron enerhy scale based on https://twiki.cern.ch/twiki/bin/viewauth/CMS/EGMSmearer    (adapted to the miniAOD/FWLite framework)
 
@@ -840,6 +840,8 @@ int main(int argc, char* argv[])
      int treeStep(ev.size()/50);
      if(treeStep==0){ treeStep = 1;}
      for(ev.toBegin(); !ev.atEnd(); ++ev){ iev++;
+       if (iev>10000) break;
+
          if(iev%treeStep==0){printf(".");fflush(stdout);}
          float weight = xsecWeight;
          double puWeightUp = 1.0;
@@ -1010,8 +1012,14 @@ int main(int argc, char* argv[])
 
           mon.fillHisto("metFilter_eventflow", "", metFilterValue, weight);
 
-          bool passTrigger        = mumuTrigger||muTrigger||eeTrigger||highPTeeTrigger||eTrigger||emuTrigger||photonTrigger;
-
+          bool passTrigger        = mumuTrigger||muTrigger||eeTrigger||highPTeeTrigger||eTrigger||emuTrigger;//||photonTrigger;
+/*std::cout << "mumuTrigger=" << mumuTrigger << std::endl;
+std::cout << "muTrigger=" << muTrigger << std::endl;
+std::cout << "eeTrigger=" << eeTrigger << std::endl;
+std::cout << "highPTeeTrigger=" << highPTeeTrigger << std::endl;
+std::cout << "eTrigger=" << eTrigger << std::endl;
+std::cout << "emuTrigger=" << emuTrigger << std::endl;
+std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
           if(  mumuTrigger)mon.fillHisto("trigger", "raw", 0 , weight);
           if(    muTrigger)mon.fillHisto("trigger", "raw", 1 , weight);
           if(    eeTrigger)mon.fillHisto("trigger", "raw", 2 , weight);
@@ -1072,7 +1080,7 @@ int main(int argc, char* argv[])
           electronsHandle.getByLabel(ev, "slimmedElectrons");
           if(electronsHandle.isValid()){ electrons = *electronsHandle;}
 
-          // to find Gain Seed 
+          // to find Gain Seed
           fwlite::Handle<EcalRecHitCollection> recHitCollectionEBHandle;
           fwlite::Handle<EcalRecHitCollection> recHitCollectionEEHandle;
           recHitCollectionEBHandle.getByLabel(ev, "reducedEgamma","reducedEBRecHits");
@@ -1159,7 +1167,7 @@ int main(int argc, char* argv[])
 
          //Resolve G+jet/QCD mixing (avoid double counting of photons)
          if (isMC_GJet || isMC_QCD ||
-	     isMC_Wlnu_inclusive || isMC_Wlnu_HT100 || isMC_WGToLNuG || 
+	     isMC_Wlnu_inclusive || isMC_Wlnu_HT100 || isMC_WGToLNuG ||
              isMC_ZNuNuGJets || isMC_ZJetsToNuNu ) {
            // iF GJet sample; accept only event with prompt photons
            // if QCD sample; reject events with prompt photons in final state
@@ -1170,8 +1178,8 @@ int main(int argc, char* argv[])
              if ( (isMC_GJet) && (!gPromptFound) ) continue; //reject event
              if ( (isMC_QCD) && gPromptFound ) continue; //reject event
 	     if ( ( isMC_Wlnu_inclusive || isMC_Wlnu_HT100) && gPromptFound ) continue;
-	     //             if ( (isMC_WGToLNuG) && (!gPromptFound) ) continue; 
-	     // if ( (isMC_ZNuNuGJets) && (!gPromptFound) ) continue; 
+	     //             if ( (isMC_WGToLNuG) && (!gPromptFound) ) continue;
+	     // if ( (isMC_ZNuNuGJets) && (!gPromptFound) ) continue;
              if ( (isMC_ZJetsToNuNu) && gPromptFound ) continue;
          }
 
@@ -1201,7 +1209,7 @@ int main(int argc, char* argv[])
            if(genNeutrinosFromZ.size() < 2) continue;
            LorentzVector genZnunuBoson;
            genZnunuBoson = genNeutrinosFromZ[0].p4() + genNeutrinosFromZ[1].p4(); //Z from neutrinos at gen lvl
-				 	
+
 				 	 //Apply LO to NLO k-factor for ZNuNuGamma (ref: fig 16 (bottom right) of http://link.springer.com/article/10.1007%2FJHEP02%282016%29057)
 				 	 if(      genZnunuBoson.Pt() > 960 ) kFactor_ZNuNuGWeight = 2.05;
 				 	 else if( genZnunuBoson.Pt() > 920 ) kFactor_ZNuNuGWeight = 2.10;
@@ -1267,13 +1275,13 @@ int main(int argc, char* argv[])
 
              //Cut based identification
              if(is2016MC || is2016data){
-                 passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::tkHighPT, patUtils::CutVersion::ICHEP16Cut);
+                 passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Tight, patUtils::CutVersion::ICHEP16Cut);
                  passLooseLepton &= lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Loose, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Loose, patUtils::CutVersion::ICHEP16Cut);
                  passSoftMuon &= lid==11? false : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Soft, patUtils::CutVersion::ICHEP16Cut);
 
                  //isolation
                  //passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0) : patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
-                 passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, rho) :   patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::TightAndTkRelatBoosted, patUtils::CutVersion::Moriond17Cut, PFpartVect, muons, vertex);
+                 passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, rho) :   patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::Moriond17Cut, PFpartVect, muons, vertex);
                  passLooseLepton &= lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Loose, patUtils::CutVersion::ICHEP16Cut, 0) : patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::Loose, patUtils::CutVersion::ICHEP16Cut);
 	     } else {
                  passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::Spring15Cut25ns) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Tight, patUtils::CutVersion::Spring15Cut25ns);
@@ -1310,6 +1318,7 @@ int main(int argc, char* argv[])
                  }
                  if(is2016MC || is2016data){
                    if(muCor2016){
+			std::cout << "hope not to see this messqhe"<< std::endl;
                      float qter =1.0;
                      TLorentzVector p4(leptons[ilep].px(),leptons[ilep].py(),leptons[ilep].pz(),leptons[ilep].energy());
                      int ntrk = leptons[ilep].mu.innerTrack()->hitPattern().trackerLayersWithMeasurement();
@@ -1344,7 +1353,7 @@ int main(int argc, char* argv[])
                   //At this point, the new data energy will be:
                  // E_new=E_old*(scale_corr);
                   TLorentzVector p4(leptons[ilep].el.px(),leptons[ilep].el.py(),leptons[ilep].el.pz(),leptons[ilep].el.energy());
-                  leptons[ilep].el.setP4(LorentzVector(p4.Px()*scale_corr,p4.Py()*scale_corr,p4.Pz()*scale_corr,p4.E()*scale_corr ) ); 
+                  leptons[ilep].el.setP4(LorentzVector(p4.Px()*scale_corr,p4.Py()*scale_corr,p4.Pz()*scale_corr,p4.E()*scale_corr ) );
                   leptons[ilep] = patUtils::GenericLepton(leptons[ilep].el); //recreate the generic lepton to be sure that the p4 is ok
                  }
              if(isMC){
@@ -1354,7 +1363,7 @@ int main(int argc, char* argv[])
                   TRandom3 *rgen_ = new TRandom3(0);
                   double smearValue = rgen_->Gaus(1, sigma) ;
                   TLorentzVector p4(leptons[ilep].el.px(),leptons[ilep].el.py(),leptons[ilep].el.pz(),leptons[ilep].el.energy());
-                  leptons[ilep].el.setP4(LorentzVector(p4.Px()*smearValue,p4.Py()*smearValue,p4.Pz()*smearValue,p4.E()*smearValue ) ); 
+                  leptons[ilep].el.setP4(LorentzVector(p4.Px()*smearValue,p4.Py()*smearValue,p4.Pz()*smearValue,p4.E()*smearValue ) );
                   leptons[ilep] = patUtils::GenericLepton(leptons[ilep].el); //recreate the generic lepton to be sure that the p4 is ok
              }
 
@@ -1396,7 +1405,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==2) { //stat electron down
                       double error_scale=0.0;
@@ -1408,7 +1417,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==3) { //systematic electron up
                       double error_scale=0.0;
@@ -1420,7 +1429,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==4) { //systematic electron down
                       double error_scale=0.0;
@@ -1432,7 +1441,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==5) { //gain switch electron up
                       double error_scale=0.0;
@@ -1444,7 +1453,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==6) { //gain switch electron down
                       double error_scale=0.0;
@@ -1456,7 +1465,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==7) { //rho resolution Electron up
 		     double smearValue = 1.0;
@@ -1472,7 +1481,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==8) { //rho resolution Electron down
 		     double smearValue = 1.0;
@@ -1488,7 +1497,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==9) { //phi resolution Electron down
 		     double smearValue = 1.0;
@@ -1504,7 +1513,7 @@ int main(int argc, char* argv[])
                            if(passKin){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
                       } else {
                                if(varLep.pt()<10) passLooseLepton = false;
-                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep); 
+                               if(passLooseLepton) extraLeptonsVar[eleVarNames[ivar]].push_back(varLep);
 	              }
                   }if(ivar==0){ // nominal
 	              if(passKin && passId && passIso){selLeptonsVar[eleVarNames[ivar]].push_back(varLep);}
@@ -1516,11 +1525,11 @@ int main(int argc, char* argv[])
               }if(abs(lid)==13){ //if muon
 		   if(passKin && passId && passIso)selLeptonsVar[eleVarNames[ivar]].push_back(leptons[ilep]);
 		   else if (passLooseLepton || passSoftMuon) extraLeptonsVar[eleVarNames[ivar]].push_back(leptons[ilep]);
-      	      }     
+      	      }
             }
 	}
 
-         std::vector<patUtils::GenericLepton>  selLeptons      = selLeptonsVar[""]; 
+         std::vector<patUtils::GenericLepton>  selLeptons      = selLeptonsVar[""];
          std::vector<patUtils::GenericLepton>  extraLeptons      = extraLeptonsVar[""];
 
 	 //
@@ -1545,7 +1554,7 @@ int main(int argc, char* argv[])
                   //At this point, the new data energy will be:
                  // E_new=E_old*(scale_corr);
                   TLorentzVector p4(photon.px(),photon.py(),photon.pz(),photon.energy());
-                  photon.setP4(LorentzVector(p4.Px()*scale_corr,p4.Py()*scale_corr,p4.Pz()*scale_corr,p4.E()*scale_corr ) ); 
+                  photon.setP4(LorentzVector(p4.Px()*scale_corr,p4.Py()*scale_corr,p4.Pz()*scale_corr,p4.E()*scale_corr ) );
                  }
 
                  if(isMC){
@@ -1556,7 +1565,7 @@ int main(int argc, char* argv[])
                   TRandom3 *rgen_ = new TRandom3(0);
                   double smearValue = rgen_->Gaus(1, sigma) ;
                   TLorentzVector p4(photon.px(),photon.py(),photon.pz(),photon.energy());
-                  photon.setP4(LorentzVector(p4.Px()*smearValue,p4.Py()*smearValue,p4.Pz()*smearValue,p4.E()*smearValue ) ); 
+                  photon.setP4(LorentzVector(p4.Px()*smearValue,p4.Py()*smearValue,p4.Pz()*smearValue,p4.E()*smearValue ) );
                  }
 //	    PhotonEnCorrector.calibrate(photon, ev.eventAuxiliary().run(), edm::StreamID::invalidStreamID());
 
@@ -1605,7 +1614,7 @@ int main(int argc, char* argv[])
 
 
            //update the met for lepton energy scales
-           met.setP4(met.p4() - muDiff - elDiff); //note this also propagates to all MET uncertainties
+           //met.setP4(met.p4() - muDiff - elDiff); //note this also propagates to all MET uncertainties
            met.setUncShift(met.px() - muDiff.px()*0.002, met.py() - muDiff.py()*0.002, met.sumEt() - muDiff.pt()*0.002, pat::MET::METUncertainty::MuonEnUp);   //assume 1% uncertainty on muon rochester
            met.setUncShift(met.px() + muDiff.px()*0.002, met.py() + muDiff.py()*0.002, met.sumEt() + muDiff.pt()*0.002, pat::MET::METUncertainty::MuonEnDown); //assume 1% uncertainty on muon rochester
            met.setUncShift(met.px() - elDiff_forMET.px(), met.py() - elDiff_forMET.py(), met.sumEt() - elDiff_forMET.pt(), pat::MET::METUncertainty::ElectronEnUp);   //assume 1% uncertainty on electron scale correction
@@ -1860,7 +1869,7 @@ int main(int argc, char* argv[])
                bool passBtags(nbtags==0);
                bool passMinDphijmet( njets==0 || mindphijmet>0.5);
 
-	       double b_dphi=fabs(deltaPhi(boson.phi(),imet.phi())); 
+	       double b_dphi=fabs(deltaPhi(boson.phi(),imet.phi()));
 	       bool passDphi(b_dphi>0.5);
 
                if(dilId==22){
@@ -1987,10 +1996,10 @@ int main(int argc, char* argv[])
                             mon.fillHisto("eventflow",tags,6,weight);
 
 			    mon.fillHisto("met_vs_dphi",tags,imet.pt(),b_dphi,weight);
-			    mon.fillHisto("mt_vs_dphi",tags,mt,b_dphi,weight);    
+			    mon.fillHisto("mt_vs_dphi",tags,mt,b_dphi,weight);
 
-			    mon.fillHisto( "dphi_boson_met",tags,b_dphi,weight);          
-			    if (imet.pt()>125) mon.fillHisto( "dphi_boson_met125",tags,b_dphi,weight);   
+			    mon.fillHisto( "dphi_boson_met",tags,b_dphi,weight);
+			    if (imet.pt()>125) mon.fillHisto( "dphi_boson_met125",tags,b_dphi,weight);
 
 			    if (passDphi) {
 			      mon.fillHisto("eventflow",tags,7,weight);
@@ -2004,37 +2013,37 @@ int main(int argc, char* argv[])
 			      mon.fillHisto( "metphiUnCor",tags,met.corP4(pat::MET::METCorrectionLevel::Type1).phi(),weight);
 			      mon.fillHisto( "bosonnvtx",tags,vtx.size(),weight);
 			      mon.fillHisto( "bosonrho",tags,rho,weight);
-			      
+
 			      mon.fillHisto( "bosoneta",tags,boson.eta(),weight);
 			      mon.fillHisto( "bosonphi",tags,boson.phi(),weight);
 			      mon.fillHisto( "bosonphiHG",tags,boson.phi(),weight);
-			      
+
 			      mon.fillHisto( "met",tags,imet.pt(),weight,true);
 			      mon.fillHisto( "metpuppi",tags,puppimet.pt(),weight,true);
 			      mon.fillHisto( "balance",tags,imet.pt()/boson.pt(),weight);
-			      
+
 			      TVector2 met2(imet.px(),imet.py());
 			      TVector2 boson2(boson.px(), boson.py());
 			      double axialMet(boson2*met2); axialMet/=-boson.pt();
 			      mon.fillHisto( "axialmet",tags,axialMet,weight);
-			      
+
 			      mon.fillHisto( "mt",tags,mt,weight,true);
-			      
+
 			      if(imet.pt()>optim_Cuts1_met[0]) {
 				mon.fillHisto( "mtcheckpoint",  tags, mt,       weight, true);
 				mon.fillHisto( "metcheckpoint", tags, imet.pt(), weight, true);
 			      }
-			      
+
 			      if(imet.pt()>80){
 				mon.fillHisto("eventflow",tags,8,weight);
 				mon.fillHisto( "mtNM1",tags,mt,weight,true);
 				mon.fillHisto( "balanceNM1",tags,imet.pt()/boson.pt(),weight);
 				mon.fillHisto( "axialmetNM1",tags,axialMet,weight);
 			      }
-			      
+
 			      if(imet.pt()>125){
 				mon.fillHisto("eventflow",tags,9,weight);
-				
+
 				mon.fillHisto( "metfinal",tags,imet.pt(),weight,true);
 				mon.fillHisto( "mtfinal",tags,mt,weight,true);
 				mon.fillHisto( "mindphijmetfinal",tags,mindphijmet,weight);
@@ -2056,7 +2065,7 @@ int main(int argc, char* argv[])
 			      if(mt>500){
 				mon.fillHisto( "metNM1",tags,imet.pt(),weight,true);
 			      }
-			      
+
 			      //pre-VBF control
 			      if(njets>=2){
 				LorentzVector dijet=selJets[0].p4()+selJets[1].p4();
@@ -2088,12 +2097,12 @@ int main(int argc, char* argv[])
 				      mon.fillHisto("vbfcjv",tags,countJetVeto,        weight);
 				    }
 				  }
-				  
+
 				  if(imet.pt()>125){
-				    
+
                                     mon.fillHisto("vbfdetajjfinal",tags,deta,        weight);
                                     if(deta>4.0){mon.fillHisto("vbfdphijjfinal",tags,dphi,        weight);}
-				    
+
                                     if(!isMC){
 				      char buffer[1024];
 				      sprintf(buffer, " - VBF mjj=%8.2f  dEta=%+6.2f dPhi=%+6.2f\n", dijet.mass(), deta, dphi   ); debugText+=buffer;
@@ -2101,7 +2110,7 @@ int main(int argc, char* argv[])
 				      sprintf(buffer, " - VBF jet2 pT=%6.2f eta=%+6.2f phi=%+6.2f\n", selJets[1].pt(), selJets[1].eta(), selJets[1].phi()   ); debugText+=buffer;
                                     }
 				  }
-				  
+
 				}
 			      }
 			    }
@@ -2162,7 +2171,7 @@ int main(int argc, char* argv[])
                        for(unsigned int nri=0;nri<NRparams.size();nri++){
                           //Higgs line shape
                           float shapeWeight = 1;   //used for shape dependent weights (avoid overwritting chWeights)
-                          
+
                           if( isMELA ){
                                 if(lMelaShapeWeights[0][MelaMode]==0){
                                         shapeWeight = 0;
@@ -2171,8 +2180,8 @@ int main(int argc, char* argv[])
                                 }
                           } else if( !isMELA ){
                                 shapeWeight =  weight;
-                          } 
-                        
+                          }
+
                           if( !isMELA ){
                              double weightToOtherNRI = ( (lShapeWeights[nri][0] * lShapeWeights[nri][1]) / (lShapeWeights[0][0] * lShapeWeights[0][1]) );  //remove weights form nri=0 as those are already in the nominal weight and apply the one for NRI!=0;
                              if(!std::isnan((double)weightToOtherNRI))shapeWeight *= weightToOtherNRI;
@@ -2187,7 +2196,10 @@ int main(int argc, char* argv[])
                              if( varNames[ivar]=="_signal_normup"     ) shapeWeight*=lMelaShapeWeights[nri][MelaMode];
                              if( varNames[ivar]=="_signal_lshapeup"   ) shapeWeight*=lMelaShapeWeights[nri][MelaMode];
                           }
-
+                        //  printf("hello="+NRsuffix[nri]+varNames[ivar]);
+                          for(unsigned int i=0;i<tags.size();i++){
+                            TString theTag=tags[i];
+                            printf("event=%i cat="+theTag+"\n",ev.eventAuxiliary().event());}
                           mon.fillHisto(TString("mt_shapes")+NRsuffix[nri]+varNames[ivar],tags,index, mt,shapeWeight);
                           mon.fillHisto(TString("met_shapes")+NRsuffix[nri]+varNames[ivar],tags,index, imet.pt(),shapeWeight);
                        }
@@ -2213,8 +2225,8 @@ int main(int argc, char* argv[])
                                 }
                           } else if( !isMELA ){
                                 shapeWeight =  weight;
-                          } 
-                        
+                          }
+
                           if( !isMELA ){
                              double weightToOtherNRI = ( (lShapeWeights[nri][0] * lShapeWeights[nri][1]) / (lShapeWeights[0][0] * lShapeWeights[0][1]) );  //remove weights form nri=0 as those are already in the nominal weight and apply the one for NRI!=0;
                              if(!std::isnan((double)weightToOtherNRI))shapeWeight *= weightToOtherNRI;
