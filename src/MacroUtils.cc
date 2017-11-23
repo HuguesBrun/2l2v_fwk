@@ -89,7 +89,7 @@ namespace utils
                  if(genJet){
                    double genjetpt( genJet ? genJet->pt(): 0.);                    
                     std::vector<double> smearJER=utils::cmssw::smearJER(jet.pt(),jet.eta(),genjetpt);
-                    jet.setP4(jet.p4()*smearJER[0]);
+                    //jet.setP4(jet.p4()*smearJER[0]);
                 
                     //printf("jet pt=%f gen pt = %f smearing %f %f %f\n", jet.pt(), genjetpt, smearJER[0], smearJER[1], smearJER[2]);
                     // //set the JER up/down alternatives

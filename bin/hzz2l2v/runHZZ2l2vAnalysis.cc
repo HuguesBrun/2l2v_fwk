@@ -840,7 +840,7 @@ int main(int argc, char* argv[])
      int treeStep(ev.size()/50);
      if(treeStep==0){ treeStep = 1;}
      for(ev.toBegin(); !ev.atEnd(); ++ev){ iev++;
-       if (iev>10000) break;
+       //if (iev>10000) break;
 
          if(iev%treeStep==0){printf(".");fflush(stdout);}
          float weight = xsecWeight;
@@ -925,7 +925,7 @@ int main(int argc, char* argv[])
                     	 }
 		     }else if(isMELA){
 			//printf("MelaMode: %s CPrime: %5.3f MPole: %5f \n", MelaMode.c_str(), NRparams[nri].first, resonance);
-                        lMelaShapeWeights[nri][MelaMode] = higgs::utils::weightNarrowResonnance_MELA( mela, isMC_VBF, MelaMode, NRparams[nri].first, resonance, ev);
+                        lMelaShapeWeights[nri][MelaMode] = 1;//higgs::utils::weightNarrowResonnance_MELA( mela, isMC_VBF, MelaMode, NRparams[nri].first, resonance, ev);
 		     }
 
 		     double shape_SF =0; double shapescale_SF = 0;
@@ -1277,7 +1277,9 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
              if(is2016MC || is2016data){
                  passId = lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Tight, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Tight, patUtils::CutVersion::ICHEP16Cut);
                  passLooseLepton &= lid==11?patUtils::passId(leptons[ilep].el, vtx[0], patUtils::llvvElecId::Loose, patUtils::CutVersion::ICHEP16Cut) : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Loose, patUtils::CutVersion::ICHEP16Cut);
-                 passSoftMuon &= lid==11? false : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::Soft, patUtils::CutVersion::ICHEP16Cut);
+        //std::cout << "right afteer the function = " << passLooseLepton << std::endl;
+                 passSoftMuon &= lid==11? false : patUtils::passId(leptons[ilep].mu, vtx[0], patUtils::llvvMuonId::StdSoft, patUtils::CutVersion::ICHEP16Cut);
+	//	std::cout << "is this muon soft=" << passSoftMuon << std::endl;
 
                  //isolation
                  //passIso = lid==11?patUtils::passIso(leptons[ilep].el,  patUtils::llvvElecIso::Tight, patUtils::CutVersion::ICHEP16Cut, 0) : patUtils::passIso(leptons[ilep].mu,  patUtils::llvvMuonIso::Tight, patUtils::CutVersion::ICHEP16Cut);
@@ -1297,7 +1299,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
 
              //apply muon corrections
              if(abs(lid)==13 && passIso && passId){
-                 passSoftMuon=false;
+                 //passSoftMuon=false;
                  if(is2015MC || is2015data){
                    if(muCor2015){
                      float qter;
@@ -1377,6 +1379,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
              }
 
               //kinematics
+             //std::cout << "aLepton = type=" << lid << " pt=" << leptons[ilep].pt() << " eta=" << leptons[ilep].eta() << " Loose=" << passLooseLepton << " Soft=" << passLooseLepton << " passKin=" << passKin << " passTight=" << passId << std::endl;
              float leta = fabs(lid==11 ?  leptons[ilep].el.superCluster()->eta() : leptons[ilep].eta());
              if(leta> (lid==11 ? 2.5 : 2.4) )            passKin=false;
              if(lid==11 && (leta>1.4442 && leta<1.5660)) passKin=false;
@@ -1389,7 +1392,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
                if(leptons[ilep].pt()<10) passLooseLepton=false;
              }
              if(leptons[ilep].pt()<25) passKin=false;
-
+             //std::cout << "aLepton = type=" << lid << " pt=" << leptons[ilep].pt() << " eta=" << leptons[ilep].eta() << " Loose=" << passLooseLepton << " Soft=" << passLooseLepton << " passKin=" << passKin << " passTight=" << passId << std::endl;
              for(unsigned int ivar=0;ivar<eleVarNames.size();ivar++){
 	        if (abs(lid)==11) { //if electron
                 const EcalRecHitCollection* recHits = (leptons[ilep].el.isEB()) ? recHitCollectionEBHandle.product() : recHitCollectionEEHandle.product();
@@ -1524,7 +1527,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
 
               }if(abs(lid)==13){ //if muon
 		   if(passKin && passId && passIso)selLeptonsVar[eleVarNames[ivar]].push_back(leptons[ilep]);
-		   else if (passLooseLepton || passSoftMuon) extraLeptonsVar[eleVarNames[ivar]].push_back(leptons[ilep]);
+		   else if (passLooseLepton || passSoftMuon || (!passKin && leptons[ilep].pt()>10 && passId)) extraLeptonsVar[eleVarNames[ivar]].push_back(leptons[ilep]);
       	      }
             }
 	}
@@ -1637,7 +1640,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
 
          for(size_t ijet=0; ijet<jets.size(); ijet++){
              pat::Jet jet = jets[ijet]; //copy the jet, such that we can update it
-
+             //std::cout << "jet pT = " << jet.pt() << " eta=" << jet.eta() << std::endl;
              if(jet.pt()<15 || fabs(jet.eta())>4.7 ) continue;
 
              //mc truth for this jet
@@ -1659,15 +1662,16 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
                  if(passPFloose && passLooseSimplePuId) mon.fillHisto("jetId", jetType,fabs(jet.eta()),3);
              }
              if(!passPFloose || !passLooseSimplePuId) continue;
-
+             //std::cout << "pass PU id" << std::endl;
 
             //check for btagging
             if(jet.pt()>30 && fabs(jet.eta())<2.5){
               bool hasCSVtag = (jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags")>btagLoose);
+              //std::cout << "passing b-tag=" << hasCSVtag << " btag=" << jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") << std::endl;
               bool hasCSVtagUp = hasCSVtag;
               bool hasCSVtagDown = hasCSVtag;
               //update according to the SF measured by BTV
-              if(isMC){
+            /*  if(isMC){
                   int flavId=jet.partonFlavour();  double eta=jet.eta();
 		  btsfutil.SetSeed(ev.eventAuxiliary().event()*10 + ijet*10000);
                   if      (abs(flavId)==5){
@@ -1698,7 +1702,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
                                         btsfutil.modifyBTagsWithSF(hasCSVtagUp  , btagCal80X.eval_auto_bounds("up", BTagEntry::FLAV_UDSG   , eta, jet.pt()), leff);
                                         btsfutil.modifyBTagsWithSF(hasCSVtagDown, btagCal80X.eval_auto_bounds("down", BTagEntry::FLAV_UDSG   , eta, jet.pt()), leff);
                   }
-              }
+              }*/
 
               if(hasCSVtag    )nbtagsVar[""          ]++;
               if(hasCSVtagUp  )nbtagsVar["_eff_bup"  ]++;
@@ -1866,6 +1870,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
                bool passMass(fabs(boson.mass()-91)<15);
                bool passQt(boson.pt()>55);
                bool passThirdLeptonVeto( selLeptons.size()==2 && extraLeptons.size()==0 );
+              //std::cout << " nbTags=" << nbtags << std::endl;
                bool passBtags(nbtags==0);
                bool passMinDphijmet( njets==0 || mindphijmet>0.5);
 
@@ -1942,6 +1947,7 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
                     mon.fillHisto("eventflow",tags, 2,weight);
                     mon.fillHisto("zpt",      tags, boson.pt(),weight);
                     mon.fillHisto("zpt_rebin",tags, boson.pt(),weight,true);
+		    //  std::cout << "met value=" <<  imet.pt() << std::endl;
                     if(imet.pt()>125)mon.fillHisto("zptMet125",      tags, boson.pt(),weight);
 
 
@@ -2042,6 +2048,11 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
 			      }
 
 			      if(imet.pt()>125){
+			std::cout << "the MET pT=" << imet.pt() << std::endl;
+			std::cout << "the MET pT=" << imet.phi() << std::endl;
+for(unsigned int i=0;i<tags.size();i++){
+                            TString theTag=tags[i];
+                            printf("event=%i cat="+theTag+"\n",ev.eventAuxiliary().event());}
 				mon.fillHisto("eventflow",tags,9,weight);
 
 				mon.fillHisto( "metfinal",tags,imet.pt(),weight,true);
@@ -2197,9 +2208,8 @@ std::cout << "photonTrigger=" << photonTrigger << std::endl;*/
                              if( varNames[ivar]=="_signal_lshapeup"   ) shapeWeight*=lMelaShapeWeights[nri][MelaMode];
                           }
                         //  printf("hello="+NRsuffix[nri]+varNames[ivar]);
-                          for(unsigned int i=0;i<tags.size();i++){
-                            TString theTag=tags[i];
-                            printf("event=%i cat="+theTag+"\n",ev.eventAuxiliary().event());}
+                          //for(unsigned int i=0;i<tags.size();i++){
+                            //TString theTag=tags[i];
                           mon.fillHisto(TString("mt_shapes")+NRsuffix[nri]+varNames[ivar],tags,index, mt,shapeWeight);
                           mon.fillHisto(TString("met_shapes")+NRsuffix[nri]+varNames[ivar],tags,index, imet.pt(),shapeWeight);
                        }
